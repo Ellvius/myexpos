@@ -1,18 +1,22 @@
-// Load the init code
-loadi(65,7);
-loadi(66,8);
+// Load exception handler
+loadi(2,15);
+loadi(3,16);
+
+// Load timer interrupt handler
+loadi(4,17);
+loadi(5,18);
 
 // Load INT 10 module
 loadi(22,35);
 loadi(23,36);
 
-// Load exception handler
-loadi(2,15);
-loadi(3,16);
-
 // Load library from disk to memory
 loadi(63,13);
 loadi(64,14);
+
+// Load the init code
+loadi(65,7);
+loadi(66,8);
 
 // Set up page table pointers
 PTBR = PAGE_TABLE_BASE;
