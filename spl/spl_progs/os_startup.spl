@@ -54,4 +54,13 @@ PTLR = 10;
 SP = 8*512;
 [76*512] = [65*512 + 1];
 
+// Set up the User area page
+[PROCESS_TABLE + 11] = 80;
+
+// Set the PID for the first PROCESS_TABLE
+[PROCESS_TABLE + 1] = 0;
+
+// Set the current PID in the system status table
+[SYSTEM_STATUS_TABLE + 1] = 0;
+
 ireturn;
