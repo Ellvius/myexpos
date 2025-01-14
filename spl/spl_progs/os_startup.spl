@@ -18,6 +18,10 @@ loadi(64,14);
 loadi(65,7);
 loadi(66,8);
 
+// Load interrupt 7 routine
+loadi(16,29);
+loadi(17,30);
+
 // Set up page table pointers
 PTBR = PAGE_TABLE_BASE;
 PTLR = 10;
