@@ -1,8 +1,8 @@
-load --os $HOME/myexpos/spl/spl_progs/os_startup.xsm
-load --idle $HOME/myexpos/expl/samples/twohundred_idle.xsm
-load --init $HOME/myexpos/expl/samples/hundred.xsm
-load --exhandler $HOME/myexpos/spl/spl_progs/haltprog.xsm
+load --os $HOME/myexpos/modules/OS_STARTUP/os_startup.xsm
+load --idle $HOME/myexpos/modules/IDLE/assgn12a_idle.xsm
+load --init $HOME/myexpos/modules/INIT/assgn12a_init.xsm
+load --exhandler $HOME/myexpos/modules/EXHANDLER/haltprog.xsm
 load --library $HOME/myexpos/expl/library.lib
-load --int=timer $HOME/myexpos/spl/spl_progs/sample_timer.xsm
-load --int=7 $HOME/myexpos/spl/spl_progs/sample_int7.xsm
-load --int=10 $HOME/myexpos/spl/spl_progs/haltprog.xsm
+load --int=timer $HOME/myexpos/modules/INT_TIMER/sample_timer.xsm
+load --int=7 $HOME/myexpos/modules/INT7/sample_int7.xsm
+load --int=10 $HOME/myexpos/modules/INT10/haltprog.xsm

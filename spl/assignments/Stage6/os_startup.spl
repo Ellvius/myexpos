@@ -1,0 +1,17 @@
+// Set up page table pointers
+PTBR = PAGE_TABLE_BASE;
+PTLR = 9;
+
+// Set up the page table
+[PTBR+8] = 65;
+[PTBR+9] = "0100";
+[PTBR+10] = 66;
+[PTBR+11] = "0100";
+[PTBR+16] = 76;
+[PTBR+17] = "0110";
+
+// Set up the application stack
+[76*512] = 2048;
+SP = 8*512;
+
+ireturn;
