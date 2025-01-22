@@ -7,7 +7,9 @@ int main()
     begin
         num = 1;
         while ( num <= 100 ) do 
-            temp = exposcall("Write", -2, num);
+            if ((num%2) == 1) then
+                temp = exposcall("Write", -2, num);
+            endif;
             num = num + 1;
         endwhile;
         return 0;

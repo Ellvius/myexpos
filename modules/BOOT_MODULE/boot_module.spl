@@ -22,6 +22,9 @@ loadi(17,30);
 loadi(22,35);
 loadi(23,36);
 
+// Load even program
+loadi(85,69);
+
 // For init process
 
 PTBR = PAGE_TABLE_BASE + 20;
@@ -65,5 +68,66 @@ PTLR = 10;
 [PROCESS_TABLE + 16 + 15] = 10;                         // PTLR
 
 [76*512] = [65*512 + 1];
+
+
+// For even program
+
+PTBR = PAGE_TABLE_BASE + 40;
+PTLR = 10;
+
+// Library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+// Heap
+[PTBR+4] = 83;
+[PTBR+5] = "0110";
+[PTBR+6] = 84;
+[PTBR+7] = "0110";
+
+// Code
+[PTBR+8] = 85;
+[PTBR+9] = "0100";
+[PTBR+10] = -1;
+[PTBR+11] = "0000";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+// Stack
+[PTBR+16] = 86;
+[PTBR+17] = "0110";
+[PTBR+18] = 87;
+[PTBR+19] = "0110";
+
+// Process table for init process
+[PROCESS_TABLE + 2*16 + 1] = 2;                           // PID
+[PROCESS_TABLE + 2*16 + 4] = CREATED;                     // Status
+[PROCESS_TABLE + 2*16 + 11] = 88;                         // User area page
+[PROCESS_TABLE + 2*16 + 12] = 0;                          // KPTR
+[PROCESS_TABLE + 2*16 + 13] = 8 * 512;                    // UPTR
+[PROCESS_TABLE + 2*16 + 14] = PAGE_TABLE_BASE + 40;       // PTBR
+[PROCESS_TABLE + 2*16 + 15] = 10;                         // PTLR
+
+[86*512] = [85*512 + 1];
+
+
+// Set the status of other processes to be terminated
+[PROCESS_TABLE + 3*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 4*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 5*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 6*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 7*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 8*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 9*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 10*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 11*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 12*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 13*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 14*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 15*16 + 4] = TERMINATED;
 
 return;

@@ -1,0 +1,15 @@
+alias currentPID R0;
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+
+alias current_process_table R1;
+current_process_table = PROCESS_TABLE + currentPID*16;
+
+alias count R2;
+count = 1;
+while(count < 16) do
+        if([PROCESS_TABLE + count*16 + 4] != TERMINATED)then
+                call TIMER;
+        endif;
+        count = (count + 1);
+endwhile;
+halt;
