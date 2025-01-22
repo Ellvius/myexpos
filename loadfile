@@ -1,9 +1,12 @@
 load --os $HOME/myexpos/modules/OS_STARTUP/os_startup.xsm
 load --idle $HOME/myexpos/modules/IDLE/idle_process.xsm
 load --init $HOME/myexpos/modules/INIT/init_process.xsm
-load --module 7 $HOME/myexpos/modules/BOOT_MODULE/boot_module.xsm
+load --module 5 $HOME/myexpos/modules/MOD5/scheduler.xsm
+load --module 7 $HOME/myexpos/modules/MOD7/boot_module.xsm
 load --exhandler $HOME/myexpos/modules/EXHANDLER/haltprog.xsm
 load --library $HOME/myexpos/expl/library.lib
 load --int=timer $HOME/myexpos/modules/INT_TIMER/timer_interrupt.xsm
 load --int=7 $HOME/myexpos/modules/INT7/interrupt_7.xsm
 load --int=10 $HOME/myexpos/modules/INT10/interrupt_10.xsm
+rm even.xsm
+load --exec $HOME/myexpos/modules/EXECUTABLES/even.xsm
