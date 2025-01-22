@@ -8,9 +8,7 @@ load --module 7 $HOME/myexpos/modules/MOD7/boot_module.xsm
 load --exhandler $HOME/myexpos/modules/EXHANDLER/haltprog.xsm
 load --library $HOME/myexpos/expl/library.lib
 load --int=timer $HOME/myexpos/modules/INT_TIMER/timer_interrupt.xsm
+load --int=console $HOME/myexpos/modules/INT_CONSOLE/console_interrupt.xsm
+load --int=6 $HOME/myexpos/modules/INT6/interrupt_6.xsm
 load --int=7 $HOME/myexpos/modules/INT7/interrupt_7.xsm
 load --int=10 $HOME/myexpos/modules/INT10/interrupt_10.xsm
-rm even.xsm
-load --exec $HOME/myexpos/modules/EXECUTABLES/even.xsm
-rm prime.xsm
-load --exec $HOME/myexpos/modules/EXECUTABLES/prime.xsm
