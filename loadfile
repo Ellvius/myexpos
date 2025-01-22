@@ -10,3 +10,5 @@ load --int=7 $HOME/myexpos/modules/INT7/interrupt_7.xsm
 load --int=10 $HOME/myexpos/modules/INT10/interrupt_10.xsm
 rm even.xsm
 load --exec $HOME/myexpos/modules/EXECUTABLES/even.xsm
+rm prime.xsm
+load --exec $HOME/myexpos/modules/EXECUTABLES/prime.xsm
