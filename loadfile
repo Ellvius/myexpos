@@ -1,6 +1,8 @@
 load --os $HOME/myexpos/modules/OS_STARTUP/os_startup.xsm
 load --idle $HOME/myexpos/modules/IDLE/idle_process.xsm
 load --init $HOME/myexpos/modules/INIT/init_process.xsm
+load --module 0 $HOME/myexpos/modules/MOD0/resource_manager.xsm
+load --module 4 $HOME/myexpos/modules/MOD4/device_manager.xsm
 load --module 5 $HOME/myexpos/modules/MOD5/scheduler.xsm
 load --module 7 $HOME/myexpos/modules/MOD7/boot_module.xsm
 load --exhandler $HOME/myexpos/modules/EXHANDLER/haltprog.xsm

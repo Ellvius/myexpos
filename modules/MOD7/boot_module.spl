@@ -22,7 +22,15 @@ loadi(17,30);
 loadi(22,35);
 loadi(23,36);
 
-// Load Schedules MODULE_5
+// Load Resource Manager MODULE_0
+loadi(40,53);
+loadi(41,54);
+
+// Load Device Manager MODULE_4
+loadi(48,61);
+loadi(49,62);
+
+// Load Scheduler MODULE_5
 loadi(50,63);
 loadi(51,64);
 
@@ -31,6 +39,10 @@ loadi(85,69);
 
 // Load even program
 loadi(91,70);
+
+
+// Terminal Status Table
+[TERMINAL_STATUS_TABLE] = 0;
 
 
 
