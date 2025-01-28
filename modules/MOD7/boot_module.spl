@@ -26,6 +26,10 @@ loadi(15,28);
 loadi(16,29);
 loadi(17,30);
 
+// Load INT 9 module
+loadi(20,33);
+loadi(21,34);
+
 // Load INT 10 module
 loadi(22,35);
 loadi(23,36);
@@ -33,6 +37,14 @@ loadi(23,36);
 // Load Resource Manager MODULE_0
 loadi(40,53);
 loadi(41,54);
+
+// Load Process Manager MODULE_1
+loadi(42,55);
+loadi(43,56);
+
+// Load Memory Manager MODULE_2
+loadi(44,57);
+loadi(45,58);
 
 // Load Device Manager MODULE_4
 loadi(48,61);
@@ -107,5 +119,24 @@ PTLR = 10;
 [PROCESS_TABLE + 13*16 + 4] = TERMINATED;
 [PROCESS_TABLE + 14*16 + 4] = TERMINATED;
 [PROCESS_TABLE + 15*16 + 4] = TERMINATED;
+
+// Initialize memory free list
+alias index R0;
+index = 0;
+
+while(index < 128) do
+    if (index < 83) 
+    then
+        [MEMORY_FREE_LIST + index] = 1;
+    
+    else
+        [MEMORY_FREE_LIST + index] = 0;
+    endif;
+
+    index = index + 1;
+endwhile;
+
+[SYSTEM_STATUS_TABLE + 2] = 39;     // Mem free count
+[SYSTEM_STATUS_TABLE + 3] = 0;      // Wait mem count
 
 return;
