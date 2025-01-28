@@ -24,8 +24,9 @@ search = 0;
 while([INODE_TABLE + index * 16 + 1] != -1) do
     alias searchFileName R5;
     alias searchFileType R6;
-    searchFileName = [INODE_TABLE + index* 16 + 1];
-    searchFileType = [INODE_TABLE + index * 16];
+    searchFileName = [INODE_TABLE + index * 16 + 1];
+    searchFileType = [INODE_TABLE + index * 16 ];
+
     if((searchFileName == fileName) && (searchFileType == 3)) 
     then    
         search = 1;
@@ -44,7 +45,7 @@ endif;
 
 // Call exit process function from process manager
 multipush(R0, R1, R2, R3, R4, R5, R6);
-R1 = 9;
+R1 = 3;
 R2 = [SYSTEM_STATUS_TABLE + 1];
 call MOD_1;
 multipop(R0, R1, R2, R3, R4, R5, R6);
@@ -116,7 +117,6 @@ endwhile;
 
 [[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
 
-
-SP = userSP;
+SP = 8 * 512;
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]  * 16 + 9] = 0;
 ireturn;

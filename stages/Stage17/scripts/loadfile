@@ -1,0 +1,17 @@
+load --os $HOME/myexpos/modules/OS_STARTUP/os_startup.xsm
+load --idle $HOME/myexpos/modules/IDLE/idle_process.xsm
+load --init $HOME/myexpos/modules/INIT/init_process.xsm
+load --module 0 $HOME/myexpos/modules/MOD0/resource_manager.xsm
+load --module 1 $HOME/myexpos/modules/MOD1/process_manager.xsm
+load --module 2 $HOME/myexpos/modules/MOD2/memory_manager.xsm
+load --module 4 $HOME/myexpos/modules/MOD4/device_manager.xsm
+load --module 5 $HOME/myexpos/modules/MOD5/scheduler.xsm
+load --module 7 $HOME/myexpos/modules/MOD7/boot_module.xsm
+load --exhandler $HOME/myexpos/modules/EXHANDLER/haltprog.xsm
+load --library $HOME/myexpos/expl/library.lib
+load --int=timer $HOME/myexpos/modules/INT_TIMER/timer_interrupt.xsm
+load --int=console $HOME/myexpos/modules/INT_CONSOLE/console_interrupt.xsm
+load --int=6 $HOME/myexpos/modules/INT6/interrupt_6.xsm
+load --int=7 $HOME/myexpos/modules/INT7/interrupt_7.xsm
+load --int=9 $HOME/myexpos/modules/INT9/interrupt_9.xsm
+load --int=10 $HOME/myexpos/modules/INT10/interrupt_10.xsm

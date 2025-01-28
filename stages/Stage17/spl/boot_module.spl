@@ -1,0 +1,146 @@
+// Load init 
+loadi(65,7);
+loadi(66,8);
+
+// Load library
+loadi(63,13);
+loadi(64,14);
+
+// Load exception handler
+loadi(2,15);
+loadi(3,16);
+
+// Load timer interrupt handler
+loadi(4,17);
+loadi(5,18);
+
+// Load console interrupt handler
+loadi(8,21);
+loadi(9,22);
+
+// Load INT 6 module
+loadi(14,27);
+loadi(15,28);
+
+// Load INT 7 module
+loadi(16,29);
+loadi(17,30);
+
+// Load INT 9 module
+loadi(20,33);
+loadi(21,34);
+
+// Load INT 10 module
+loadi(22,35);
+loadi(23,36);
+
+// Load Resource Manager MODULE_0
+loadi(40,53);
+loadi(41,54);
+
+// Load Process Manager MODULE_1
+loadi(42,55);
+loadi(43,56);
+
+// Load Memory Manager MODULE_2
+loadi(44,57);
+loadi(45,58);
+
+// Load Device Manager MODULE_4
+loadi(48,61);
+loadi(49,62);
+
+// Load Scheduler MODULE_5
+loadi(50,63);
+loadi(51,64);
+
+// Load Scheduler MODULE_5
+loadi(59,3);
+loadi(60,4);
+
+
+// Terminal Status Table
+[TERMINAL_STATUS_TABLE] = 0;
+
+
+
+// For init process
+
+PTBR = PAGE_TABLE_BASE + 20;
+PTLR = 10;
+
+// Library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+// Heap
+[PTBR+4] = 78;
+[PTBR+5] = "0110";
+[PTBR+6] = 79;
+[PTBR+7] = "0110";
+
+// Code
+[PTBR+8] = 65;
+[PTBR+9] = "0100";
+[PTBR+10] = 66;
+[PTBR+11] = "0100";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+// Stack
+[PTBR+16] = 76;
+[PTBR+17] = "0110";
+[PTBR+18] = 77;
+[PTBR+19] = "0110";
+
+// Process table for init process
+[PROCESS_TABLE + 16 + 1] = 1;                           // PID
+[PROCESS_TABLE + 16 + 4] = CREATED;                     // Status
+[PROCESS_TABLE + 16 + 11] = 80;                         // User area page
+[PROCESS_TABLE + 16 + 12] = 0;                          // KPTR
+[PROCESS_TABLE + 16 + 13] = 8 * 512;                    // UPTR
+[PROCESS_TABLE + 16 + 14] = PAGE_TABLE_BASE + 20;       // PTBR
+[PROCESS_TABLE + 16 + 15] = 10;                         // PTLR
+
+[76*512] = [65*512 + 1];
+
+// Set the status of other processes to be terminated
+[PROCESS_TABLE +  2*16 + 4] = TERMINATED;
+[PROCESS_TABLE +  3*16 + 4] = TERMINATED;
+[PROCESS_TABLE +  4*16 + 4] = TERMINATED;
+[PROCESS_TABLE +  5*16 + 4] = TERMINATED;
+[PROCESS_TABLE +  6*16 + 4] = TERMINATED;
+[PROCESS_TABLE +  7*16 + 4] = TERMINATED;
+[PROCESS_TABLE +  8*16 + 4] = TERMINATED;
+[PROCESS_TABLE +  9*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 10*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 11*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 12*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 13*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 14*16 + 4] = TERMINATED;
+[PROCESS_TABLE + 15*16 + 4] = TERMINATED;
+
+// Initialize memory free list
+alias index R0;
+index = 0;
+
+while(index < 128) do
+    if (index < 83) 
+    then
+        [MEMORY_FREE_LIST + index] = 1;
+    
+    else
+        [MEMORY_FREE_LIST + index] = 0;
+    endif;
+
+    index = index + 1;
+endwhile;
+
+[SYSTEM_STATUS_TABLE + 2] = 39;     // Mem free count
+[SYSTEM_STATUS_TABLE + 3] = 0;      // Wait mem count
+
+return;

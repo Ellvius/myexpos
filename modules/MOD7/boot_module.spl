@@ -54,6 +54,10 @@ loadi(49,62);
 loadi(50,63);
 loadi(51,64);
 
+// Load Scheduler MODULE_5
+loadi(59,3);
+loadi(60,4);
+
 
 // Terminal Status Table
 [TERMINAL_STATUS_TABLE] = 0;
