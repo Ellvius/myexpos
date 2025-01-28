@@ -1,53 +1,13 @@
-decl
-    int a[100];
-enddecl
-
-int main() {
-
+int main () {
     decl
-        int n, sorted, i, size, temp;
+        str filename;
+        int temp;
     enddecl
 
     begin
-        temp = exposcall("Read", -1, n);
-        size = n;
-
-        // Read array
-        i = 0;
-        while(i < n) do
-            temp = exposcall("Read", -1, a[i]);
-            i = i + 1;
-        endwhile;
-
-        // Sort array    
-        sorted = 0;
-
-        while(sorted == 0) do
-            i = 0;
-            sorted = 1;
-
-            while( i < (n-1)) do 
-                if ( a[i] > a[i+1])
-                then    
-                    temp = a[i+1];
-                    a[i+1] = a[i];
-                    a[i] = temp;
-                    sorted = 0;
-                endif;
-
-                i = i + 1;
-            endwhile;
-
-            n = n - 1;
-        endwhile;
-
-        // Print array
-        i = 0;
-        while(i < size) do 
-            temp = exposcall("Write", -2, a[i]);
-            i = i + 1;
-        endwhile;
-
+        temp = exposcall("Write", -2, "Filename:");
+        temp = exposcall("Read", -1, filename);
+        temp = exposcall("Exec", filename);
         return 0;
     end
 }
