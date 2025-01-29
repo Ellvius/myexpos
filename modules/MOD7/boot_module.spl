@@ -14,6 +14,10 @@ loadi(3,16);
 loadi(4,17);
 loadi(5,18);
 
+// Load disk interrupt handler
+loadi(6,19);
+loadi(7,20);
+
 // Load console interrupt handler
 loadi(8,21);
 loadi(9,22);
@@ -61,6 +65,9 @@ loadi(60,4);
 
 // Terminal Status Table
 [TERMINAL_STATUS_TABLE] = 0;
+
+// Disk Status Table
+[DISK_STATUS_TABLE] = 0;
 
 
 
@@ -124,8 +131,17 @@ PTLR = 10;
 [PROCESS_TABLE + 14*16 + 4] = TERMINATED;
 [PROCESS_TABLE + 15*16 + 4] = TERMINATED;
 
-// Initialize memory free list
+
+// Initialize the per process table 
 alias index R0;
+index = 0;
+while(index < 16) do
+    [[PROCESS_TABLE + 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + index] = -1;
+    index = index + 2;
+endwhile;
+
+
+// Initialize memory free list
 index = 0;
 
 while(index < 128) do
@@ -140,7 +156,7 @@ while(index < 128) do
     index = index + 1;
 endwhile;
 
-[SYSTEM_STATUS_TABLE + 2] = 39;     // Mem free count
+[SYSTEM_STATUS_TABLE + 2] = 45;     // Mem free count
 [SYSTEM_STATUS_TABLE + 3] = 0;      // Wait mem count
 
 return;

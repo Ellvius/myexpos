@@ -1,6 +1,34 @@
 alias functionNum R1;
 alias currentPID R2;
 
+// Disk Load
+
+if(functionNum == 2) then
+    alias pageNum R3;
+    alias blockNum R4;
+
+    // Calling Acquire Disk
+    multipush(R1, R2, R3, R4);
+    R1 = 3;
+    R2 = currentPID;
+    call MOD_0;
+    multipop(R1, R2, R3, R4);
+
+    // Set disk status table
+    [DISK_STATUS_TABLE + 1] = 0;
+    [DISK_STATUS_TABLE + 2] = pageNum;
+    [DISK_STATUS_TABLE + 3] = blockNum;
+    
+    load(pageNum, blockNum);
+    [PROCESS_TABLE + currentPID * 16 + 4] = WAIT_DISK;
+
+    multipush(R1, R2, R3, R4);
+    call SCHEDULER;
+    multipop(R1, R2, R3, R4);
+
+    return;
+
+endif;
 
 // Terminal Write
 

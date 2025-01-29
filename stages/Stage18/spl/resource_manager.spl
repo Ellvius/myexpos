@@ -1,0 +1,79 @@
+alias functionNum R1;
+alias currentPID R2;
+
+
+
+// Acquire Disk Function
+
+if(functionNum == 3) 
+then
+    while ([DISK_STATUS_TABLE] == 1) do
+
+        [PROCESS_TABLE + currentPID * 16 + 4] = WAIT_DISK;
+        multipush(R1, R2, R3);
+        call SCHEDULER;
+        multipop(R1, R2, R3);
+
+    endwhile;
+
+    [DISK_STATUS_TABLE] = 1;
+    [DISK_STATUS_TABLE + 4] = currentPID;
+
+    return;
+
+endif;
+
+
+
+// Acquire Terminal Function
+
+if(functionNum == 8) 
+then   
+    while ([TERMINAL_STATUS_TABLE] == 1) do
+
+        [PROCESS_TABLE + (currentPID)*16 + 4] = WAIT_TERMINAL;
+        multipush(R1, R2, R3);
+        call SCHEDULER;
+        multipop(R1, R2, R3);
+
+    endwhile;
+    
+    [TERMINAL_STATUS_TABLE] = 1;
+    [TERMINAL_STATUS_TABLE + 1] = currentPID;
+    breakpoint;
+
+    return;
+
+endif;
+
+
+
+// Release Terminal Function
+
+if(functionNum == 9) 
+then    
+    if(currentPID == [TERMINAL_STATUS_TABLE + 1]) then
+
+        [TERMINAL_STATUS_TABLE] = 0;
+
+        alias pid R5;
+        pid = 0;
+        while( pid < 16) do
+            if ([PROCESS_TABLE + pid*16 + 4] == WAIT_TERMINAL) then
+                [PROCESS_TABLE + pid*16 + 4] = READY;
+            endif;
+            pid = pid + 1;
+        endwhile;
+        
+        R0 = 0;
+        breakpoint;
+        return;
+
+    else
+        
+        R0 = -1;
+        return;
+
+    endif;
+
+endif;

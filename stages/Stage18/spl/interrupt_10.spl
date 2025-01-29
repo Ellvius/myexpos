@@ -1,0 +1,17 @@
+alias currentPID R0;
+currentPID = [SYSTEM_STATUS_TABLE + 1];
+
+alias current_process_table R1;
+current_process_table = PROCESS_TABLE + currentPID*16;
+
+[current_process_table + 4] = TERMINATED;
+
+alias iPID R2;
+iPID = 1;
+while(iPID < 16) do
+        if([PROCESS_TABLE + iPID*16 + 4] != TERMINATED)then
+                call SCHEDULER;
+        endif;
+        iPID = (iPID + 1);
+endwhile;
+halt;

@@ -1,0 +1,167 @@
+alias userSP R0;
+userSP = SP;
+
+// Change stack to kernel stack
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1;
+
+// Set mode flag
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]  * 16 + 9] = 9;
+
+// Get the argument 
+alias fileName R1;
+fileName = [[PTBR + 2*(userSP - 4)/512] * 512 + (userSP - 4) % 512];
+
+
+// Search the inode table for the fileName
+alias index R2;
+alias inodeIndex R3;
+alias search R4;
+index = 0;
+inodeIndex = -1;
+search = 0;
+
+while(index < 60) do
+    alias searchFileName R5;
+    alias searchFileType R6;
+    searchFileName = [INODE_TABLE + index * 16 + 1];
+    searchFileType = [INODE_TABLE + index * 16 ];
+
+    if((searchFileName == fileName) && (searchFileType == 3)) 
+    then    
+        search = 1;
+        inodeIndex = index;
+        break;
+    endif;
+    index = index + 1;
+endwhile;
+
+
+// If not found return -1
+if(search == 0)
+then
+    alias physicalAddrRetVal R5;
+    physicalAddrRetVal = [PTBR + 2*(userSP - 1)/512] * 512 + (userSP - 1) % 512;
+    [physicalAddrRetVal] = -1;
+    [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]  * 16 + 9] = 0;
+    SP = userSP;
+    ireturn;
+endif;
+
+
+
+// Call exit process function from process manager
+multipush(R0, R1, R2, R3, R4, R5, R6);
+R1 = 3;
+R2 = [SYSTEM_STATUS_TABLE + 1];
+call MOD_1;
+multipop(R0, R1, R2, R3, R4, R5, R6);
+
+
+
+// Reclaim the same user area page
+alias userAreaPage R6;
+userAreaPage = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 11];
+[MEMORY_FREE_LIST + userAreaPage] = [MEMORY_FREE_LIST + userAreaPage] + 1;
+[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
+
+
+
+// Set the new SP
+SP = userAreaPage * 512 - 1;
+
+
+
+// Set the new process
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 4] = RUNNING;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 7] = inodeIndex;
+
+
+
+// Set the page table entries for the new process
+PTBR = PAGE_TABLE_BASE + [SYSTEM_STATUS_TABLE + 1] * 20;
+PTLR = 10;
+
+
+
+// Library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+multipush(R0, R1, R2, R3, R4, R5, R6);
+R1 = 1;
+
+// Heap
+call MOD_2;
+[PTBR+4] = R0;
+[PTBR+5] = "0110";
+
+call MOD_2;
+[PTBR+6] = R0;
+[PTBR+7] = "0110";
+
+// Stack
+call MOD_2;
+[PTBR+16] = R0;
+[PTBR+17] = "0110";
+
+call MOD_2;
+[PTBR+18] = R0;
+[PTBR+19] = "0110";
+
+multipop(R0, R1, R2, R3, R4, R5, R6);
+
+
+
+// Assign page to code
+alias codePageNum R7;
+codePageNum = [INODE_TABLE + inodeIndex * 16 + 2] / 512 + 1;
+index = 0;
+
+while (index < codePageNum) do
+    multipush(R0, R1, R2, R3, R4, R5, R6, R7);
+    R1 = 1;
+    call MOD_2;     // Get Free Page
+    [PTBR+ 8 + 2*index] = R0;
+    [PTBR+ 9 + 2*index] = "0100";
+    multipop(R0, R1, R2, R3, R4, R5, R6, R7);
+    index = index + 1;
+endwhile;
+
+
+
+// Load the code to the memory pages
+index = 0;
+while(index < codePageNum) do
+    alias pageNum R9;
+    alias blockNum R10;
+    pageNum = [PTBR + 8 + 2*index];
+    blockNum = [INODE_TABLE + inodeIndex * 16 + 8 + index];
+
+    multipush(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10);
+    R1 = 2;
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    R3 = pageNum;
+    R4 = blockNum;
+    call MOD_4;             // Calling Disk Load
+    multipop(R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10);
+
+    index = index + 1;
+endwhile;
+
+
+// Initialize the per process table
+index = 0;
+while(index < 16) do
+    [[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + index] = -1;
+    index = index + 2;
+endwhile;
+
+
+[[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
+
+SP = 8 * 512;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]  * 16 + 9] = 0;
+ireturn;
