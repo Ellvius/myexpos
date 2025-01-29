@@ -140,7 +140,7 @@ while(index < 128) do
     index = index + 1;
 endwhile;
 
-[SYSTEM_STATUS_TABLE + 2] = 39;     // Mem free count
+[SYSTEM_STATUS_TABLE + 2] = 45;     // Mem free count
 [SYSTEM_STATUS_TABLE + 3] = 0;      // Wait mem count
 
 return;

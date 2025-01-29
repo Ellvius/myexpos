@@ -21,7 +21,7 @@ index = 0;
 inodeIndex = -1;
 search = 0;
 
-while([INODE_TABLE + index * 16 + 1] != -1) do
+while(index < 60) do
     alias searchFileName R5;
     alias searchFileType R6;
     searchFileName = [INODE_TABLE + index * 16 + 1];
@@ -31,9 +31,11 @@ while([INODE_TABLE + index * 16 + 1] != -1) do
     then    
         search = 1;
         inodeIndex = index;
+        break;
     endif;
     index = index + 1;
 endwhile;
+
 
 // If not found return -1
 if(search == 0)
@@ -41,7 +43,12 @@ then
     alias physicalAddrRetVal R5;
     physicalAddrRetVal = [PTBR + 2*(userSP - 1)/512] * 512 + (userSP - 1) % 512;
     [physicalAddrRetVal] = -1;
+    [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]  * 16 + 9] = 0;
+    SP = userSP;
+    ireturn;
 endif;
+
+
 
 // Call exit process function from process manager
 multipush(R0, R1, R2, R3, R4, R5, R6);
@@ -50,22 +57,32 @@ R2 = [SYSTEM_STATUS_TABLE + 1];
 call MOD_1;
 multipop(R0, R1, R2, R3, R4, R5, R6);
 
+
+
 // Reclaim the same user area page
 alias userAreaPage R6;
 userAreaPage = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 11];
 [MEMORY_FREE_LIST + userAreaPage] = [MEMORY_FREE_LIST + userAreaPage] + 1;
 [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
 
+
+
 // Set the new SP
 SP = userAreaPage * 512 - 1;
+
+
 
 // Set the new process
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 4] = RUNNING;
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 7] = inodeIndex;
 
+
+
 // Set the page table entries for the new process
 PTBR = PAGE_TABLE_BASE + [SYSTEM_STATUS_TABLE + 1] * 20;
 PTLR = 10;
+
+
 
 // Library
 [PTBR+0] = 63;
@@ -94,26 +111,36 @@ call MOD_2;
 [PTBR+18] = R0;
 [PTBR+19] = "0110";
 
+multipop(R0, R1, R2, R3, R4, R5, R6);
 
+
+
+// Assign page to code
 alias codePageNum R7;
 alias i R8;
-codePageNum = [INODE_TABLE + inodeIndex * 16 + 2] % 512 + 1;
+codePageNum = [INODE_TABLE + inodeIndex * 16 + 2] / 512 + 1;
 i = 0;
 
 while (i < codePageNum) do
-    call MOD_2;
-    [PTBR+8 + 2*i] = R0;
-    [PTBR+9 + 2*i] = "0100";
+    multipush(R0, R1, R2, R3, R4, R5, R6, R7, R8);
+    R1 = 1;
+    call MOD_2;     // Get Free Page
+    [PTBR+ 8 + 2*i] = R0;
+    [PTBR+ 9 + 2*i] = "0100";
+    multipop(R0, R1, R2, R3, R4, R5, R6, R7, R8);
     i = i + 1;
 endwhile;
 
-multipop(R0, R1, R2, R3, R4, R5, R6);
 
+
+// Load the code to the memory pages
 i = 0;
 while(i < codePageNum) do
     loadi([PTBR + 8 + 2*i], [INODE_TABLE + inodeIndex * 16 + 8 + i]);
     i = i + 1;
 endwhile;
+
+
 
 [[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
 
