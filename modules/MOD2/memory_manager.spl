@@ -25,7 +25,7 @@ then
 
     [MEMORY_FREE_LIST + index] = 1;
     R0 = index;
-    breakpoint;
+    
     return;
 
 endif;
@@ -59,7 +59,7 @@ then
 
         index = index + 1;
     endwhile;
-    breakpoint;
+    
     return;
 
 endif;

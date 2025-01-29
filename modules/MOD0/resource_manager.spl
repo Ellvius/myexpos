@@ -40,7 +40,6 @@ then
     
     [TERMINAL_STATUS_TABLE] = 1;
     [TERMINAL_STATUS_TABLE + 1] = currentPID;
-    breakpoint;
 
     return;
 
@@ -66,7 +65,6 @@ then
         endwhile;
         
         R0 = 0;
-        breakpoint;
         return;
 
     else
