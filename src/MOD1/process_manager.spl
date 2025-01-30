@@ -1,0 +1,104 @@
+alias functionNum R1;
+
+
+// Free user Area page
+
+if (functionNum == 2) 
+then
+    alias PID R2;
+    alias userAreaPage R3;
+    userAreaPage = [PROCESS_TABLE + PID * 16 + 11];
+
+    multipush(R1, R2, R3);
+    R1 = 2;
+    R2 = userAreaPage;
+    call MOD_2;
+    multipop(R1, R2, R3);
+    return;
+
+endif;
+
+
+
+// Exit process
+
+if (functionNum == 3) 
+then
+    alias PID R2;
+
+    multipush(R1, R2);
+    R1 = 4;
+    R2 = PID;
+    call MOD_1;
+
+    R1 = 2;
+    call MOD_1;
+    multipop(R1, R2);
+
+    [PROCESS_TABLE + PID * 16 + 4] = TERMINATED;
+
+    return;
+    
+endif;
+
+
+
+// Free page table
+
+if (functionNum == 4) 
+then
+    alias PID R2;
+    PTBR = PAGE_TABLE_BASE + PID * 20;
+
+    // Invalidate Library
+    [PTBR+0] = -1;
+    [PTBR+1] = "0000";
+    [PTBR+2] = -1;
+    [PTBR+3] = "0000";
+    
+    alias index R3;
+    index = 4;
+
+    while(index < 20) do
+        if([PTBR + index] != -1) 
+        then
+            // Invoke Release Page function
+            multipush(R1, R2, R3);
+            R1 = 2;
+            R2 = [PTBR + index];
+            call MOD_2;
+            multipop(R1, R2, R3);
+        endif;
+
+        // Invalidate the corresponding page table entry
+        [PTBR + index] = -1;
+        [PTBR + index + 1] = "0000";
+
+        index = index + 2;
+    endwhile;
+    
+    index = 0;
+    while(index < 10) do
+        if([DISK_MAP_TABLE + PID * 10 + index] != -1)
+        then
+            // Check if it is a stack or Heap
+            if((index == 2) || (index == 3) || (index == 8) || (index == 9))
+            then
+                // Invoke Release Block function
+                multipush(R1, R2, R3);
+                R1 = 4;
+                R2 = [DISK_MAP_TABLE + PID * 10 + index];
+                call MOD_2;
+                multipop(R1, R2, R3);
+            endif;
+        endif;
+        
+        // Set the entry to -1
+        [DISK_MAP_TABLE + PID * 10 + index] = -1;
+
+        index = index + 1;
+    endwhile;
+
+    return;
+    
+endif;

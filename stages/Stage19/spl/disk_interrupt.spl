@@ -1,0 +1,28 @@
+// Switch to kernel stack
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 11] * 512 - 1;
+
+// Save user register context
+backup;
+
+[DISK_STATUS_TABLE] = 0;
+
+// Change the state of wait disk processes
+alias PID R5;
+PID = 0;
+while( PID < 16) do
+    if ([PROCESS_TABLE + PID*16 + 4] == WAIT_DISK) 
+    then
+        [PROCESS_TABLE + PID*16 + 4] = READY;
+    endif;
+
+    PID = PID + 1;
+endwhile;
+
+// Restore user register context
+restore;
+
+// Switch to user mode
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13];
+
+ireturn;

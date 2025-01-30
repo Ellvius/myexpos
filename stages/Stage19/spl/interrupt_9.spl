@@ -1,0 +1,180 @@
+alias userSP R0;
+userSP = SP;
+
+// Change stack to kernel stack
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1;
+
+// Set mode flag
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]  * 16 + 9] = 9;
+
+// Get the argument 
+alias fileName R1;
+fileName = [[PTBR + 2*(userSP - 4)/512] * 512 + (userSP - 4) % 512];
+
+
+// Search the inode table for the fileName
+alias index R2;
+alias inodeIndex R3;
+alias search R4;
+index = 0;
+inodeIndex = -1;
+search = 0;
+
+while(index < 60) do
+    alias searchFileName R5;
+    alias searchFileType R6;
+    searchFileName = [INODE_TABLE + index * 16 + 1];
+    searchFileType = [INODE_TABLE + index * 16 ];
+
+    if((searchFileName == fileName) && (searchFileType == 3)) 
+    then    
+        search = 1;
+        inodeIndex = index;
+        break;
+    endif;
+    index = index + 1;
+endwhile;
+
+
+
+// If not found or not of the executable format return -1
+if(search == 0)
+then
+    alias physicalAddrRetVal R5;
+    physicalAddrRetVal = [PTBR + 2*(userSP - 1)/512] * 512 + (userSP - 1) % 512;
+    [physicalAddrRetVal] = -1;
+    [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]  * 16 + 9] = 0;
+    SP = userSP;
+    ireturn;
+endif;
+
+
+
+// Call exit process function from process manager
+multipush(R0, R1, R2, R3, R4, R5, R6);
+R1 = 3;
+R2 = [SYSTEM_STATUS_TABLE + 1];
+call MOD_1;
+multipop(R0, R1, R2, R3, R4, R5, R6);
+
+
+
+// Reclaim the same user area page
+alias userAreaPage R6;
+userAreaPage = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 11];
+[MEMORY_FREE_LIST + userAreaPage] = [MEMORY_FREE_LIST + userAreaPage] + 1;      // mem free list
+[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;                      // mem free count
+
+
+
+// Set SP to the new kernel stack
+SP = userAreaPage * 512 - 1;
+
+
+
+// Initialize the per process table
+index = 0;
+while(index < 16) do
+    [[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + index] = -1;
+    index = index + 2;
+endwhile;
+
+
+
+// Set the new process status and inode index
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 4] = RUNNING;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 7] = inodeIndex;
+
+
+
+// Acquire user stack pages
+alias stackPage1 R7;
+alias stackPage2 R8;
+
+multipush(R0, R1, R2, R3, R4, R5, R6);
+R1 = 1;
+call MOD_2;         // Get Free Page
+stackPage1 = R0;
+call MOD_2;
+stackPage2 = R0;
+multipop(R0, R1, R2, R3, R4, R5, R6);
+
+
+
+// Obtain code block
+alias codeBlockNum R9;
+codeBlockNum = [INODE_TABLE + inodeIndex * 16 + 8];
+
+
+
+// Load code block into memory and obtain page number
+alias codePageNum R10;
+multipush(R0, R1, R2, R3, R4, R5, R6, R7, R8);
+R1 = 5;
+R2 = codeBlockNum;
+call MOD_2;             // Get Code Page
+codePageNum = R0;
+multipop(R0, R1, R2, R3, R4, R5, R6, R7, R8);
+
+
+
+// Set the page table
+
+// Library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+// Heap
+[PTBR+4] = -1;
+[PTBR+5] = "0000";
+[PTBR+6] = -1;
+[PTBR+7] = "0000";
+
+// Code
+[PTBR+ 8] = codePageNum;
+[PTBR+ 9] = "0100";
+[PTBR+10] = -1;
+[PTBR+11] = "0000";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+// Stack
+[PTBR+16] = stackPage1;
+[PTBR+17] = "0110";
+[PTBR+18] = stackPage2;
+[PTBR+19] = "0110";
+
+
+
+// Set up the Disk Map table
+alias diskMapTable R8;
+diskMapTable = DISK_MAP_TABLE + [SYSTEM_STATUS_TABLE + 1] * 10;
+
+[diskMapTable + 0] = -1;                                        // Unused
+[diskMapTable + 1] = -1;                                        // Unused
+[diskMapTable + 2] = -1;                                        // Heap 1
+[diskMapTable + 3] = -1;                                        // Heap 2
+[diskMapTable + 4] = [INODE_TABLE + inodeIndex * 16 +  8];      // Code 1
+[diskMapTable + 5] = [INODE_TABLE + inodeIndex * 16 +  9];      // Code 2
+[diskMapTable + 6] = [INODE_TABLE + inodeIndex * 16 + 10];      // Code 3
+[diskMapTable + 7] = [INODE_TABLE + inodeIndex * 16 + 11];      // Code 4
+[diskMapTable + 8] = -1;                                        // Stack 1
+[diskMapTable + 9] = -1;                                        // Stack 2
+
+
+
+// Set entry point of the user program to top of the user stack
+[[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
+
+// Set SP to logical address of user stack
+SP = 8 * 512;
+
+// Set mode flag to 0
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]  * 16 + 9] = 0;
+
+ireturn;
