@@ -1,18 +1,17 @@
 alias functionNum R1;
 
 
-// Free user Area page
 
-if (functionNum == 2) 
+if (functionNum == FREE_USER_AREA_PAGE) 
 then
     alias PID R2;
     alias userAreaPage R3;
     userAreaPage = [PROCESS_TABLE + PID * 16 + 11];
 
     multipush(R1, R2, R3);
-    R1 = 2;
+    R1 = RELEASE_PAGE;
     R2 = userAreaPage;
-    call MOD_2;
+    call MEMORY_MANAGER;
     multipop(R1, R2, R3);
     return;
 
@@ -20,19 +19,18 @@ endif;
 
 
 
-// Exit process
 
-if (functionNum == 3) 
+if (functionNum == EXIT_PROCESS) 
 then
     alias PID R2;
 
     multipush(R1, R2);
-    R1 = 4;
+    R1 = FREE_PAGE_TABLE;
     R2 = PID;
-    call MOD_1;
+    call PROCESS_MANAGER;
 
-    R1 = 2;
-    call MOD_1;
+    R1 = FREE_USER_AREA_PAGE;
+    call PROCESS_MANAGER;
     multipop(R1, R2);
 
     [PROCESS_TABLE + PID * 16 + 4] = TERMINATED;
@@ -43,9 +41,8 @@ endif;
 
 
 
-// Free page table
 
-if (functionNum == 4) 
+if (functionNum == FREE_PAGE_TABLE) 
 then
     alias PID R2;
     PTBR = PAGE_TABLE_BASE + PID * 20;
@@ -62,11 +59,11 @@ then
     while(index < 20) do
         if([PTBR + index] != -1) 
         then
-            // Invoke Release Page function
+
             multipush(R1, R2, R3);
-            R1 = 2;
+            R1 = RELEASE_PAGE;
             R2 = [PTBR + index];
-            call MOD_2;
+            call MEMORY_MANAGER;
             multipop(R1, R2, R3);
         endif;
 
@@ -84,11 +81,11 @@ then
             // Check if it is a stack or Heap
             if((index == 2) || (index == 3) || (index == 8) || (index == 9))
             then
-                // Invoke Release Block function
+
                 multipush(R1, R2, R3);
-                R1 = 4;
+                R1 = RELEASE_BLOCK;
                 R2 = [DISK_MAP_TABLE + PID * 10 + index];
-                call MOD_2;
+                call MEMORY_MANAGER;
                 multipop(R1, R2, R3);
             endif;
         endif;

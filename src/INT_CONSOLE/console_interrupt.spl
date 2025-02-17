@@ -15,10 +15,9 @@ process_table = PROCESS_TABLE + reqPID * 16;
 
 multipush(R0, R1);
 
-// Release the Terminal
-R1 = 9;
+R1 = RELEASE_TERMINAL;
 R2 = reqPID;
-call MOD_0;
+call RESOURCE_MANAGER;
 
 multipop(R0, R1);
 

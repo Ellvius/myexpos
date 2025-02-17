@@ -3,9 +3,8 @@ alias currentPID R2;
 
 
 
-// Acquire Disk Function
 
-if(functionNum == 3) 
+if(functionNum == ACQUIRE_DISK) 
 then
     while ([DISK_STATUS_TABLE] == 1) do
 
@@ -25,9 +24,8 @@ endif;
 
 
 
-// Acquire Terminal Function
 
-if(functionNum == 8) 
+if(functionNum == ACQUIRE_TERMINAL) 
 then   
     while ([TERMINAL_STATUS_TABLE] == 1) do
 
@@ -40,7 +38,6 @@ then
     
     [TERMINAL_STATUS_TABLE] = 1;
     [TERMINAL_STATUS_TABLE + 1] = currentPID;
-    breakpoint;
 
     return;
 
@@ -48,9 +45,8 @@ endif;
 
 
 
-// Release Terminal Function
 
-if(functionNum == 9) 
+if(functionNum == RELEASE_TERMINAL) 
 then    
     if(currentPID == [TERMINAL_STATUS_TABLE + 1]) then
 
@@ -66,7 +62,6 @@ then
         endwhile;
         
         R0 = 0;
-        breakpoint;
         return;
 
     else

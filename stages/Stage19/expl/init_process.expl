@@ -1,19 +1,15 @@
-int main()
-{
+// Shell version - I
+
+int main () {
     decl
-        int a, b, temp;
+        str filename;
+        int temp;
     enddecl
 
     begin
-        temp = exposcall("Read", -1, a);
-        temp = exposcall("Read", -1, b);
-        while ( b != 0 ) do
-            temp = b;
-            b = a % b;
-            a = temp;
-        endwhile;
-
-        temp = exposcall("Write", -2, a);
+        temp = exposcall("Write", -2, "Filename:");
+        temp = exposcall("Read", -1, filename);
+        temp = exposcall("Exec", filename);
         return 0;
     end
 }

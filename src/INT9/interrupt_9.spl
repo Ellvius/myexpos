@@ -53,9 +53,9 @@ endif;
 
 // Call exit process function from process manager
 multipush(R0, R1, R2, R3, R4, R5, R6);
-R1 = 3;
+R1 = EXIT_PROCESS;
 R2 = [SYSTEM_STATUS_TABLE + 1];
-call MOD_1;
+call PROCESS_MANAGER;
 multipop(R0, R1, R2, R3, R4, R5, R6);
 
 
@@ -93,10 +93,10 @@ alias stackPage1 R7;
 alias stackPage2 R8;
 
 multipush(R0, R1, R2, R3, R4, R5, R6);
-R1 = 1;
-call MOD_2;         // Get Free Page
+R1 = GET_FREE_PAGE;
+call MEMORY_MANAGER;         // Get Free Page
 stackPage1 = R0;
-call MOD_2;
+call MEMORY_MANAGER;
 stackPage2 = R0;
 multipop(R0, R1, R2, R3, R4, R5, R6);
 
@@ -111,9 +111,9 @@ codeBlockNum = [INODE_TABLE + inodeIndex * 16 + 8];
 // Load code block into memory and obtain page number
 alias codePageNum R10;
 multipush(R0, R1, R2, R3, R4, R5, R6, R7, R8);
-R1 = 5;
+R1 = GET_CODE_PAGE;
 R2 = codeBlockNum;
-call MOD_2;             // Get Code Page
+call MEMORY_MANAGER;             // Get Code Page
 codePageNum = R0;
 multipop(R0, R1, R2, R3, R4, R5, R6, R7, R8);
 
