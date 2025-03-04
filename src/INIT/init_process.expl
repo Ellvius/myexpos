@@ -2,14 +2,16 @@
 
 int main () {
     decl
-        str filename;
-        int temp;
+        int temp, pid;
     enddecl
 
     begin
-        temp = exposcall("Write", -2, "Filename:");
-        temp = exposcall("Read", -1, filename);
-        temp = exposcall("Exec", filename);
+        pid = exposcall("Fork");
+        if(pid != 0) then
+            temp = exposcall("Exec", "even.xsm");
+        else
+            temp = exposcall("Exec", "odd.xsm");
+        endif;
         return 0;
     end
 }

@@ -19,3 +19,7 @@ load --int=9 $HOME/myexpos/src/INT9/interrupt_9.xsm
 load --int=10 $HOME/myexpos/src/INT10/interrupt_10.xsm
 rm list.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/list.xsm
+rm even.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/even.xsm
+rm odd.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/odd.xsm

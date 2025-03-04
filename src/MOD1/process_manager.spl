@@ -2,21 +2,21 @@ alias functionNum R1;
 
 
 if (functionNum == GET_PCB_ENTRY) then
-    alias index R2;
-    index = 1;
+    alias i R2;
+    i = 1;
 
-    while(index < 16) do
-        if(([PROCESS_TABLE + 1] == -1) || ([PROCESS_TABLE + 4] == TERMINATED)) then
-            [PROCESS_TABLE + 1] = index;
-            [PROCESS_TABLE + 4] = ALLOCATED;
-            [PROCESS_TABLE + 14] = PAGE_TABLE_BASE + 20*index;
-            [PROCESS_TABLE + 15] = 10;
+    while(i < 16) do
+        if(([PROCESS_TABLE + i * 16 + 1] == -1) || ([PROCESS_TABLE + i * 16 + 4] == TERMINATED)) then
+            [PROCESS_TABLE + i * 16 + 1] = i;
+            [PROCESS_TABLE + i * 16 + 4] = ALLOCATED;
+            [PROCESS_TABLE + i * 16 + 14] = PAGE_TABLE_BASE + 20*i;
+            [PROCESS_TABLE + i * 16 + 15] = 10;
 
-            R0 = index;
+            R0 = i;
             return;
 
         endif;
-        index = index + 1;
+        i = i + 1;
     endwhile;
 
     R0 = -1;

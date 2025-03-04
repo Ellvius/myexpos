@@ -1,0 +1,118 @@
+alias userSP R0;
+userSP = SP;
+
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 8;
+
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 11] * 512 - 1;
+
+multipush(R0);
+
+R1 = GET_PCB_ENTRY;
+call PROCESS_MANAGER;
+
+alias cPID R2;
+cPID = R0;
+
+multipop(R0);
+
+if(cPID == -1) then
+    [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 0;
+    [[PTBR + 2 * ((userSP - 1)/512)] * 512 + (userSP - 1) % 512] = -1;
+    SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 13];
+    
+else
+
+    if([PTBR + 4] == -1) then
+        multipush(R0);
+
+        R1 = GET_FREE_PAGE;
+        call MEMORY_MANAGER;
+        [PTBR + 4] = R0;
+        [PTBR + 5] = "0110";
+
+        R1 = GET_FREE_PAGE;
+        call MEMORY_MANAGER;
+        [PTBR + 6] = R0;
+        [PTBR + 7] = "0110";
+
+        multipop(R0);
+    endif;
+
+    multipush(R0);
+
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    [PAGE_TABLE_BASE + cPID * 20 + 16] = R0;
+    [PAGE_TABLE_BASE + cPID * 20 + 17] = "0110";
+
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    [PAGE_TABLE_BASE + cPID * 20 + 18] = R0;
+    [PAGE_TABLE_BASE + cPID * 20 + 19] = "0110";
+
+    multipop(R0);
+
+    [PROCESS_TABLE + cPID * 16 +  3] = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 +  3];
+    [PROCESS_TABLE + cPID * 16 +  6] = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 +  6];
+    [PROCESS_TABLE + cPID * 16 +  7] = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 +  7];
+    [PROCESS_TABLE + cPID * 16 + 10] = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 10];
+    [PROCESS_TABLE + cPID * 16 + 13] = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13];
+
+    [PROCESS_TABLE + cPID * 16 +  2] = [SYSTEM_STATUS_TABLE + 1];
+    [PROCESS_TABLE + cPID * 16 +  0] = 0;
+    [PROCESS_TABLE + cPID * 16 +  9] = 0;
+    [PROCESS_TABLE + cPID * 16 + 12] = 0;
+
+    multipush(R0);
+
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    [PROCESS_TABLE + cPID * 16 + 11] = R0;
+
+    multipop(R0);
+
+    // copy the per process resource table 
+    alias i R1;
+    i = 0;
+    while(i < 16) do
+        [[PROCESS_TABLE + cPID * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + i] = [[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + i];
+        i = i + 1;
+    endwhile;
+
+    // copy the per process disk map table
+    i = 0;
+    while(i < 10) do 
+        [DISK_MAP_TABLE + cPID * 16 + i] = [DISK_MAP_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + i];
+        i = i + 1;
+    endwhile;
+
+    // Set up the page table entries for the child process
+    i = 0;
+    while(i < 16) do
+        [PAGE_TABLE_BASE + cPID * 20 + i] = [PTBR + i];
+        [PAGE_TABLE_BASE + cPID * 20 + i + 1] = [PTBR + i + 1];
+        if([PAGE_TABLE_BASE + cPID * 20 + i] != -1) then
+            [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + cPID * 20 + i]] = [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + cPID * 20 + i]] + 1;
+        endif;
+        i = i + 2;
+    endwhile;
+
+    // copy stack
+    i = 0;
+    while(i < 512) do
+        [[PAGE_TABLE_BASE + cPID * 20 + 16] * 512 + i] = [[PTBR + 16] * 512 + i];
+        [[PAGE_TABLE_BASE + cPID * 20 + 18] * 512 + i] = [[PTBR + 18] * 512 + i];
+        i = i + 1;
+    endwhile;
+    
+    [[PROCESS_TABLE + cPID * 16 + 11] * 512] = BP;
+
+    [[PAGE_TABLE_BASE + cPID * 20 + 2 * ((userSP - 1)/512)] * 512 + (userSP - 1) % 512] = 0;
+    [[PTBR + 2 * ((userSP - 1)/512)] * 512 + (userSP - 1) % 512] = cPID;
+
+    [PROCESS_TABLE + cPID * 16 +  4] = CREATED;
+    [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 0;
+    SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13];
+endif;
+ireturn;
