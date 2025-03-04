@@ -91,10 +91,11 @@ else
     i = 0;
     while(i < 16) do
         [PAGE_TABLE_BASE + cPID * 20 + i] = [PTBR + i];
-        if(([PTBR + i] % 2) == 0) then
-            [MEMORY_FREE_LIST + [PTBR + i]] = [MEMORY_FREE_LIST + [PTBR + i]] + 1;
+        [PAGE_TABLE_BASE + cPID * 20 + i + 1] = [PTBR + i + 1];
+        if([PAGE_TABLE_BASE + cPID * 20 + i] != -1) then
+            [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + cPID * 20 + i]] = [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + cPID * 20 + i]] + 1;
         endif;
-        i = i + 1;
+        i = i + 2;
     endwhile;
 
     // copy stack
