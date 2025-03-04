@@ -1,9 +1,32 @@
 alias functionNum R1;
 
 
+if (functionNum == GET_PCB_ENTRY) then
+    alias index R2;
+    index = 1;
 
-if (functionNum == FREE_USER_AREA_PAGE) 
-then
+    while(index < 16) do
+        if(([PROCESS_TABLE + 1] == -1) || ([PROCESS_TABLE + 4] == TERMINATED)) then
+            [PROCESS_TABLE + 1] = index;
+            [PROCESS_TABLE + 4] = ALLOCATED;
+            [PROCESS_TABLE + 14] = PAGE_TABLE_BASE + 20*index;
+            [PROCESS_TABLE + 15] = 10;
+
+            R0 = index;
+            return;
+
+        endif;
+        index = index + 1;
+    endwhile;
+
+    R0 = -1;
+    return;
+    
+endif;
+
+
+
+if (functionNum == FREE_USER_AREA_PAGE) then
     alias PID R2;
     alias userAreaPage R3;
     userAreaPage = [PROCESS_TABLE + PID * 16 + 11];
@@ -19,9 +42,7 @@ endif;
 
 
 
-
-if (functionNum == EXIT_PROCESS) 
-then
+if (functionNum == EXIT_PROCESS) then
     alias PID R2;
 
     multipush(R1, R2);
@@ -41,9 +62,7 @@ endif;
 
 
 
-
-if (functionNum == FREE_PAGE_TABLE) 
-then
+if (functionNum == FREE_PAGE_TABLE) then
     alias PID R2;
     PTBR = PAGE_TABLE_BASE + PID * 20;
 

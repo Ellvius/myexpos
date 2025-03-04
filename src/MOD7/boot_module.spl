@@ -37,6 +37,10 @@ loadi(15,28);
 loadi(16,29);
 loadi(17,30);
 
+// Load INT 8 module
+loadi(18,31);
+loadi(19,32);
+
 // Load INT 9 module
 loadi(20,33);
 loadi(21,34);
@@ -140,7 +144,7 @@ alias index R0;
 index = 0;
 while(index < 16) do
     [[PROCESS_TABLE + 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + index] = -1;
-    index = index + 2;
+    index = index + 1;
 endwhile;
 
 
