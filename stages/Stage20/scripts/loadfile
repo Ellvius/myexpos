@@ -1,0 +1,25 @@
+load --os $HOME/myexpos/src/OS_STARTUP/os_startup.xsm
+load --idle $HOME/myexpos/src/IDLE/idle_process.xsm
+load --init $HOME/myexpos/src/INIT/init_process.xsm
+load --module 0 $HOME/myexpos/src/MOD0/resource_manager.xsm
+load --module 1 $HOME/myexpos/src/MOD1/process_manager.xsm
+load --module 2 $HOME/myexpos/src/MOD2/memory_manager.xsm
+load --module 4 $HOME/myexpos/src/MOD4/device_manager.xsm
+load --module 5 $HOME/myexpos/src/MOD5/scheduler.xsm
+load --module 7 $HOME/myexpos/src/MOD7/boot_module.xsm
+load --exhandler $HOME/myexpos/src/EXHANDLER/exhandler.xsm
+load --library $HOME/myexpos/expl/library.lib
+load --int=timer $HOME/myexpos/src/INT_TIMER/timer_interrupt.xsm
+load --int=disk $HOME/myexpos/src/INT_DISK/disk_interrupt.xsm
+load --int=console $HOME/myexpos/src/INT_CONSOLE/console_interrupt.xsm
+load --int=6 $HOME/myexpos/src/INT6/interrupt_6.xsm
+load --int=7 $HOME/myexpos/src/INT7/interrupt_7.xsm
+load --int=8 $HOME/myexpos/src/INT8/interrupt_8.xsm
+load --int=9 $HOME/myexpos/src/INT9/interrupt_9.xsm
+load --int=10 $HOME/myexpos/src/INT10/interrupt_10.xsm
+rm list.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/list.xsm
+rm even.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/even.xsm
+rm odd.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/odd.xsm

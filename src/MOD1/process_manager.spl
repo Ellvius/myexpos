@@ -45,6 +45,24 @@ endif;
 if (functionNum == EXIT_PROCESS) then
     alias PID R2;
 
+    if([PROCESS_TABLE + PID * 16 + 9] != 9) then 
+        alias i R3;
+        i = 0;
+        while(i < 16) do 
+            // wake up processes
+            if([PROCESS_TABLE + i * 16 + 4] == WAIT_PROCESS && [PROCESS_TABLE + i * 16 + 4] == PID) then
+                [PROCESS_TABLE + i * 16 + 4] = READY;
+            endif;
+
+            // set child processes as orphans
+            if([PROCESS_TABLE + i * 16 + 2] == PID) then
+                [PROCESS_TABLE + i * 16 + 2] = -1;
+            endif;  
+
+            i = i + 1;
+        endwhile;
+    endif;
+
     multipush(R1, R2);
     R1 = FREE_PAGE_TABLE;
     R2 = PID;

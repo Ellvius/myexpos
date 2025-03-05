@@ -49,6 +49,14 @@ loadi(21,34);
 loadi(22,35);
 loadi(23,36);
 
+// Load INT 11 module
+loadi(24,37);
+loadi(25,38);
+
+// Load INT 15 module
+loadi(32,45);
+loadi(33,46);
+
 // Load Resource Manager MODULE_0
 loadi(40,53);
 loadi(41,54);

@@ -28,4 +28,7 @@ for file in "$HOME/myexpos/src"/**/*.expl; do
     cp "$file" "$STAGE_DIR/expl/"
 done
 
+#Move loadfile
+cp "$HOME/myexpos/loadfile" "$STAGE_DIR/scripts/"
+
 echo "Copied all files to $1 successfully"
