@@ -50,7 +50,7 @@ if (functionNum == EXIT_PROCESS) then
         i = 0;
         while(i < 16) do 
             // wake up processes
-            if([PROCESS_TABLE + i * 16 + 4] == WAIT_PROCESS && [PROCESS_TABLE + i * 16 + 4] == PID) then
+            if([PROCESS_TABLE + i * 16 + 4] == WAIT_PROCESS && [PROCESS_TABLE + i * 16 + 5] == PID) then
                 [PROCESS_TABLE + i * 16 + 4] = READY;
             endif;
 
