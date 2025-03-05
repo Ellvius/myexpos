@@ -1,70 +1,29 @@
-type
-List
-{
-    int data;
-    List next;
-}
-endtype
-            
-decl
-    List head;
-    int x, pid, temp, length;
-enddecl
-            
-int main()
-{
-decl
-    List p, q;
-    int i;
-enddecl
-            
-begin
-    temp = exposcall("Heapset");
-    head = null;
-    q = head;
+int main(){
+    decl
+        str command;
+        int temp, cpid;
+    enddecl
 
-    length=1;
-    while (length <= 100)  do
-        p = exposcall("Alloc",2);
-        p.data = length;
-        p.next = null;
-        
-        if (head == null) then
-            head = p;
-            q = p;
-        else
-            q.next = p;
-            q = q.next;
-        endif;
-                          
-        length = length+1;
-    endwhile;
-                      
-    pid = exposcall("Fork");
-    if(pid == 0) then
-        p = head;
-        while(p != null)  do
-            x = p.data;
-            temp = exposcall("Write",-2,x);
-            p = p.next;
-            if(p == null) then
-                break;
+    begin
+        while(1 == 1) do 
+            temp = exposcall("Write", -2, "Enter:");
+            temp = exposcall("Read", -1, command);
+
+            if(command == "Shutdown") then
+                temp = exposcall("Shutdown");
             endif;
-            p = p.next;
-        endwhile;
-    else
-        q = head.next;
-        while(q != null)  do
-            x = q.data;
-            temp = exposcall("Write",-2,x);
-            q = q.next;
-            if(q == null) then
-                break;
+
+            cpid = exposcall("Fork");
+            if(cpid == 0) then
+                temp = exposcall("Exec", command);
+                temp = exposcall("Write", -2, "BAD COMMAND");
+                temp = exposcall("Exit");
+            else
+                temp = exposcall("Wait", cpid);
+                temp = exposcall("Write", -2, " ");
             endif;
-            q = q.next;
         endwhile;
-    endif;
-                
-    return 0;
-end
+
+        return 0;
+    end
 }
