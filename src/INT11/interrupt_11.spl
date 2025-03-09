@@ -49,7 +49,7 @@ if(systemCallNumber == 14) then
     while(i < 16) do 
         if([PROCESS_TABLE + i * 16 + 4] == WAIT_PROCESS && [PROCESS_TABLE + i * 16 + 5] == [SYSTEM_STATUS_TABLE + 1]) then
             [PROCESS_TABLE + i * 16 + 4] = READY;
-            [PROCESS_TABLE + i * 16 + 4] = -1;
+            [PROCESS_TABLE + i * 16 + 5] = -1;
         endif;
         i = i + 1;
     endwhile;
