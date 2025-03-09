@@ -70,7 +70,7 @@ then
     call MEMORY_MANAGER;         
     [PTBR+4] = R0;
     [PTBR+5] = "1110";
-    print "heap";
+    
     R1 = GET_FREE_PAGE;
     call MEMORY_MANAGER;         
     [PTBR+6] = R0;

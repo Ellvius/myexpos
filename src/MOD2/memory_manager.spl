@@ -126,7 +126,6 @@ then
 
     // Return the code page number
     R0 = pageNum;
-    breakpoint;
     return;
 
 endif;

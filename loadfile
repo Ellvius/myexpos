@@ -29,3 +29,5 @@ rm pid.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/pid.xsm
 rm forkpid.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/forkpid.xsm
+rm sync.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/sync.xsm

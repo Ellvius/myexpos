@@ -9,7 +9,7 @@ int main(){
             temp = exposcall("Write", -2, "Enter:");
             temp = exposcall("Read", -1, command);
 
-            if(command == "Shutdown") then
+            if(command == "exit") then
                 temp = exposcall("Shutdown");
             endif;
 
