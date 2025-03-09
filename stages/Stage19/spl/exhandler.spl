@@ -1,3 +1,4 @@
+breakpoint;
 alias userSP R5;
 userSP = SP;
 
@@ -65,23 +66,14 @@ endif;
 // If Page number corresponds to a Heap page
 if((EPN == 2) || (EPN == 3))
 then
-    alias heapPage1 R3;
-    alias heapPage2 R4;
-
-
     R1 = GET_FREE_PAGE;
     call MEMORY_MANAGER;         
-    heapPage1 = R0;
-
-    R1 = GET_FREE_PAGE;
-    call MEMORY_MANAGER;         
-    heapPage2 = R0;
-    
-
-    // Set the page table entry for heap 
-    [PTBR+4] = heapPage1;
+    [PTBR+4] = R0;
     [PTBR+5] = "1110";
-    [PTBR+6] = heapPage2;
+    print "heap";
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;         
+    [PTBR+6] = R0;
     [PTBR+7] = "1110";
 endif;
 
