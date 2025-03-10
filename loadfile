@@ -33,3 +33,13 @@ rm forkpid.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/forkpid.xsm
 rm sync.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/sync.xsm
+rm rw.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/rw.xsm
+rm parent.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/parent.xsm
+rm child.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/child.xsm
+rm msort1.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/msort1.xsm
+rm msort2.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/msort2.xsm
