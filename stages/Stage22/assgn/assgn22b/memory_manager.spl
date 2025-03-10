@@ -1,0 +1,130 @@
+alias functionNum R1;
+
+
+
+if (functionNum == GET_FREE_PAGE) 
+then
+    [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] + 1;      // Increment the wait mem count
+
+    while([SYSTEM_STATUS_TABLE + 2] == 0) do
+        [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 4] = WAIT_MEM;
+        multipush(R1, R2);
+        call SCHEDULER;
+        multipop(R1, R2);
+    endwhile;
+
+    [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] - 1;      // Decrement the wait mem count
+    [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;      // Decrement Mem free count
+
+    alias index R3;
+    index = 0;
+
+    while([MEMORY_FREE_LIST + index] != 0) do
+        index = index + 1;
+    endwhile;
+
+    [MEMORY_FREE_LIST + index] = 1;
+    R0 = index;
+
+    if(index > [DISK_STATUS_TABLE + 5]) then
+        [DISK_STATUS_TABLE + 5] = index;
+    endif;
+
+    return;
+
+endif;
+
+
+
+
+if (functionNum == RELEASE_PAGE) 
+then
+    alias pageNum R2;
+    [MEMORY_FREE_LIST + pageNum] = [MEMORY_FREE_LIST + pageNum] - 1;
+
+    if([MEMORY_FREE_LIST + pageNum] == 0)
+    then
+        [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] + 1;      // Increment Mem free count
+    endif;
+    
+    alias index R3;
+    index = 0;
+    
+    while(index < 16) do
+        if(( [PROCESS_TABLE + index * 16 + 1] != -1) && ([PROCESS_TABLE + index * 16 + 4] == WAIT_MEM))
+        then
+            [PROCESS_TABLE + index * 16 + 4] = READY;
+        endif;
+
+        index = index + 1;
+    endwhile;
+    
+    return;
+
+endif;
+
+
+
+
+if (functionNum == RELEASE_BLOCK) 
+then
+    alias blockNum R2;
+    [DISK_FREE_LIST + blockNum] = 0;
+    
+    return;
+
+endif;
+
+
+
+
+if (functionNum == GET_CODE_PAGE) 
+then
+    alias blockNum R2;
+    alias process R3;
+    alias index R4;
+    alias pageNum R5;
+    process = 0;
+    index = 4;
+
+    while(process < 16) do
+        while(index < 8) do
+            pageNum = [PAGE_TABLE_BASE + process * 20 + 2 * index];
+
+            if(([DISK_MAP_TABLE + process * 10 + index] == blockNum) && (pageNum != -1))
+            then
+                // Increment mem free list of the page
+                [MEMORY_FREE_LIST + pageNum] = [MEMORY_FREE_LIST + pageNum] + 1;
+                R0 = pageNum;
+
+                return;
+            endif;
+            index = index + 1;
+        endwhile;
+        
+        process = process + 1;
+    endwhile;
+
+
+    // Invoke Get Free Page function
+    multipush(R1, R2, R3, R4);
+
+    R1 = GET_FREE_PAGE;
+    call MEMORY_MANAGER;
+    pageNum = R0;
+    multipop(R1, R2, R3, R4);
+
+    // Invoke the Disk Load function
+    multipush(R0, R1, R2, R3, R4, R5);
+    R1 = DISK_LOAD;
+    R4 = blockNum;          // R2 is used to save blockNum
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    R3 = pageNum;
+    call DEVICE_MANAGER;             
+    multipop(R0, R1, R2, R3, R4, R5);
+
+    // Return the code page number
+    R0 = pageNum;
+    return;
+
+endif;

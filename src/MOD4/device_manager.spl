@@ -21,7 +21,8 @@ if(functionNum == DISK_LOAD) then
 
     load(pageNum, blockNum);
     [PROCESS_TABLE + currentPID * 16 + 4] = WAIT_DISK;
-
+    [DISK_STATUS_TABLE + 6] = [DISK_STATUS_TABLE + 6] + 1;
+    
     multipush(R1, R2, R3, R4);
     call SCHEDULER;
     multipop(R1, R2, R3, R4);

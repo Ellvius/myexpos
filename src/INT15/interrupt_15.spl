@@ -1,2 +1,8 @@
 // Shutdown system call 
+print "memaccess";
+print [DISK_STATUS_TABLE + 5];
+print "diskaccess";
+print [DISK_STATUS_TABLE + 6];
+print "switch";
+print [DISK_STATUS_TABLE + 7];
 halt;

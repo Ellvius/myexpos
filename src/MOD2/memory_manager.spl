@@ -25,7 +25,11 @@ then
 
     [MEMORY_FREE_LIST + index] = 1;
     R0 = index;
-    
+
+    if(index > [DISK_STATUS_TABLE + 5]) then
+        [DISK_STATUS_TABLE + 5] = index;
+    endif;
+
     return;
 
 endif;
