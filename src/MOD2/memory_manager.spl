@@ -47,14 +47,9 @@ then
     index = 0;
     
     while(index < 16) do
-        alias indexPID R4;
-        alias status R5;
-        indexPID = [PROCESS_TABLE + index * 16 + 1];
-        status = [PROCESS_TABLE + index * 16 + 4];
-
-        if(( indexPID != -1) && (status == WAIT_MEM))
+        if(( [PROCESS_TABLE + index * 16 + 1] != -1) && ([PROCESS_TABLE + index * 16 + 4] == WAIT_MEM))
         then
-            status = READY;
+            [PROCESS_TABLE + index * 16 + 4] = READY;
         endif;
 
         index = index + 1;

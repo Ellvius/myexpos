@@ -21,13 +21,13 @@ if(systemCallNumber == INT_SEMLOCK) then
     if(SEMID < 0 || SEMID > 7 || [RESOURCE_TABLE + SEMID * 2] != 1) then
         [[PTBR + 2 * ((userSP - 1) / 512)] * 512 + (userSP - 1) % 512] = -1;
     else 
-        while([SEMAPHORE_TABLE + SEMTABLEINDEX * 4] != [SYSTEM_STATUS_TABLE + 1]) do
+        while([SEMAPHORE_TABLE + SEMTABLEINDEX * 4] != -1 && [SEMAPHORE_TABLE + SEMTABLEINDEX * 4] != [SYSTEM_STATUS_TABLE + 1]) do
             [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 4] = WAIT_SEMAPHORE;
             [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 5] = SEMTABLEINDEX;
 
-            multipush(R0,R1,R2,R3);
+            multipush(R0,R1,R2,R3,R4);
             call SCHEDULER;
-            multipop(R0,R1,R2,R3);
+            multipop(R0,R1,R2,R3,R4);
 
         endwhile;
 
@@ -41,6 +41,7 @@ if(systemCallNumber == INT_SEMUNLOCK) then
     alias SEMID R2;
     alias RESOURCE_TABLE R3;
     alias SEMTABLEINDEX R4;
+
     SEMID = [[PTBR + 2 * ((userSP - 4) / 512)] * 512 + (userSP - 4) % 512];
     RESOURCE_TABLE = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET;
     SEMTABLEINDEX = [RESOURCE_TABLE + SEMID * 2 + 1];

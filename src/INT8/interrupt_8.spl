@@ -24,7 +24,7 @@ if(cPID == -1) then
 else
 
     if([PTBR + 4] == -1) then
-        multipush(R0);
+        multipush(R0,R2);
 
         R1 = GET_FREE_PAGE;
         call MEMORY_MANAGER;
@@ -36,10 +36,10 @@ else
         [PTBR + 6] = R0;
         [PTBR + 7] = "0110";
 
-        multipop(R0);
+        multipop(R0,R2);
     endif;
 
-    multipush(R0);
+    multipush(R0,R2);
 
     R1 = GET_FREE_PAGE;
     call MEMORY_MANAGER;
@@ -51,7 +51,7 @@ else
     [PAGE_TABLE_BASE + cPID * 20 + 18] = R0;
     [PAGE_TABLE_BASE + cPID * 20 + 19] = "0110";
 
-    multipop(R0);
+    multipop(R0,R2);
 
     [PROCESS_TABLE + cPID * 16 +  3] = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 +  3];
     [PROCESS_TABLE + cPID * 16 +  6] = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 +  6];
@@ -64,13 +64,13 @@ else
     [PROCESS_TABLE + cPID * 16 +  9] = 0;
     [PROCESS_TABLE + cPID * 16 + 12] = 0;
 
-    multipush(R0);
+    multipush(R0,R2);
 
     R1 = GET_FREE_PAGE;
     call MEMORY_MANAGER;
     [PROCESS_TABLE + cPID * 16 + 11] = R0;
 
-    multipop(R0);
+    multipop(R0,R2);
 
     
     // copy the per process resource table 
