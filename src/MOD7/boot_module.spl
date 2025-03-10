@@ -53,6 +53,14 @@ loadi(23,36);
 loadi(24,37);
 loadi(25,38);
 
+// Load INT 13 module
+loadi(28,41);
+loadi(29,42);
+
+// Load INT 14 module
+loadi(30,43);
+loadi(31,44);
+
 // Load INT 15 module
 loadi(32,45);
 loadi(33,46);
@@ -148,11 +156,11 @@ PTLR = 10;
 
 
 // Initialize the per process table 
-alias index R0;
-index = 0;
-while(index < 16) do
-    [[PROCESS_TABLE + 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + index] = -1;
-    index = index + 1;
+alias i R0;
+i = 0;
+while(i < 16) do
+    [[PROCESS_TABLE + 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + i] = -1;
+    i = i + 1;
 endwhile;
 
 
@@ -174,19 +182,31 @@ diskMapTable = DISK_MAP_TABLE + 10;
 
 
 // Initialize memory free list
-index = 0;
+i = 0;
 
-while(index < 128) do
-    if (index < 83) 
+while(i < 128) do
+    if (i < 83) 
     then
-        [MEMORY_FREE_LIST + index] = 1;
+        [MEMORY_FREE_LIST + i] = 1;
     
     else
-        [MEMORY_FREE_LIST + index] = 0;
+        [MEMORY_FREE_LIST + i] = 0;
     endif;
 
-    index = index + 1;
+    i = i + 1;
 endwhile;
+
+
+// Initialize Semaphore table
+i = 0;
+
+while(i < MAX_SEM_COUNT) do
+    [SEMAPHORE_TABLE + i * 4] = -1;
+    [SEMAPHORE_TABLE + i * 4 + 1] = 0;
+
+    i = i + 1;
+endwhile;
+
 
 [SYSTEM_STATUS_TABLE + 2] = 45;     // Mem free count
 [SYSTEM_STATUS_TABLE + 3] = 0;      // Wait mem count

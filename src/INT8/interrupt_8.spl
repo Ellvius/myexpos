@@ -72,13 +72,26 @@ else
 
     multipop(R0);
 
+    
     // copy the per process resource table 
     alias i R1;
+    alias PARENT_RESOURCE_TABLE R3;
+    alias CHILD_RESOURCE_TABLE R4;
+
+    PARENT_RESOURCE_TABLE = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET;
+    CHILD_RESOURCE_TABLE = [PROCESS_TABLE + cPID * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET;
     i = 0;
-    while(i < 16) do
-        [[PROCESS_TABLE + cPID * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + i] = [[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + i];
+
+    while(i < 8) do
+        [CHILD_RESOURCE_TABLE + i * 2] = [PARENT_RESOURCE_TABLE + i * 2];
+        [CHILD_RESOURCE_TABLE + i * 2 + 1] = [PARENT_RESOURCE_TABLE + i * 2 + 1];
+
+        if([PARENT_RESOURCE_TABLE + i * 2] == SEMAPHORE) then
+            [SEMAPHORE_TABLE + [PARENT_RESOURCE_TABLE + i * 2 + 1] * 4 + 1] = [SEMAPHORE_TABLE + [PARENT_RESOURCE_TABLE + i * 2 + 1] * 4 + 1] + 1; 
+        endif;
         i = i + 1;
     endwhile;
+
 
     // copy the per process disk map table
     i = 0;
@@ -86,6 +99,7 @@ else
         [DISK_MAP_TABLE + cPID * 10 + i] = [DISK_MAP_TABLE + [SYSTEM_STATUS_TABLE + 1] * 10 + i];
         i = i + 1;
     endwhile;
+
 
     // Set up the page table entries for the child process
     i = 0;
@@ -98,6 +112,7 @@ else
         i = i + 2;
     endwhile;
 
+
     // copy stack
     i = 0;
     while(i < 512) do
@@ -105,6 +120,7 @@ else
         [[PAGE_TABLE_BASE + cPID * 20 + 18] * 512 + i] = [[PTBR + 18] * 512 + i];
         i = i + 1;
     endwhile;
+
     
     [[PROCESS_TABLE + cPID * 16 + 11] * 512] = BP;
 

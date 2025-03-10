@@ -18,6 +18,8 @@ load --int=8 $HOME/myexpos/src/INT8/interrupt_8.xsm
 load --int=9 $HOME/myexpos/src/INT9/interrupt_9.xsm
 load --int=10 $HOME/myexpos/src/INT10/interrupt_10.xsm
 load --int=11 $HOME/myexpos/src/INT11/interrupt_11.xsm
+load --int=13 $HOME/myexpos/src/INT13/interrupt_13.xsm
+load --int=14 $HOME/myexpos/src/INT14/interrupt_14.xsm
 load --int=15 $HOME/myexpos/src/INT15/interrupt_15.xsm
 rm list.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/list.xsm
