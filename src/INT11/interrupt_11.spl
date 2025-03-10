@@ -1,3 +1,4 @@
+[TERMINAL_STATUS_TABLE + 2] = [TERMINAL_STATUS_TABLE + 2] + 1;
 alias userSP R0;
 userSP = SP;
 

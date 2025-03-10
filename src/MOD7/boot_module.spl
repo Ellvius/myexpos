@@ -214,5 +214,6 @@ endwhile;
 [DISK_STATUS_TABLE + 5] = 82;   // max mem usage
 [DISK_STATUS_TABLE + 6] = 0;    // disk access
 [DISK_STATUS_TABLE + 7] = 0;    // context switch
+[TERMINAL_STATUS_TABLE  + 2] = 0;   // kernel switch
 
 return;
