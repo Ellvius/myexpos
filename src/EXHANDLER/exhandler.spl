@@ -1,4 +1,3 @@
-[TERMINAL_STATUS_TABLE + 2] = [TERMINAL_STATUS_TABLE + 2] + 1;
 breakpoint;
 alias userSP R5;
 userSP = SP;

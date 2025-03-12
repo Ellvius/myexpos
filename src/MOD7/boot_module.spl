@@ -5,6 +5,9 @@ loadi(61,2);
 loadi(59,3);
 loadi(60,4);
 
+// Load root file
+loadi(62,5);
+
 // Load init 
 loadi(65,7);
 loadi(66,8);
@@ -28,6 +31,10 @@ loadi(7,20);
 // Load console interrupt handler
 loadi(8,21);
 loadi(9,22);
+
+// Load INT 4 module
+loadi(10,23);
+loadi(11,24);
 
 // Load INT 6 module
 loadi(14,27);
@@ -129,6 +136,7 @@ PTLR = 10;
 
 // Process table for init process
 [PROCESS_TABLE + 16 + 1] = 1;                           // PID
+[PROCESS_TABLE + 16 + 3] = 1;                           // USERID
 [PROCESS_TABLE + 16 + 4] = CREATED;                     // Status
 [PROCESS_TABLE + 16 + 11] = 80;                         // User area page
 [PROCESS_TABLE + 16 + 12] = 0;                          // KPTR
@@ -208,12 +216,29 @@ while(i < MAX_SEM_COUNT) do
 endwhile;
 
 
+// Initialize File status table
+i = 0;
+
+while(i < MAX_FILE_NUM) do
+    [FILE_STATUS_TABLE + i * 4] = -1;
+    [FILE_STATUS_TABLE + i * 4 + 1] = -1;
+
+    i = i + 1;
+endwhile;
+
+
+// Initialize Buffer table
+i = 0;
+
+while(i < MAX_BUFFER) do
+    [BUFFER_TABLE + i * 4] = -1;
+    [BUFFER_TABLE + i * 4 + 1] = 0;
+    [BUFFER_TABLE + i * 4 + 1] = -1;
+
+    i = i + 1;
+endwhile;
+
 [SYSTEM_STATUS_TABLE + 2] = 45;     // Mem free count
 [SYSTEM_STATUS_TABLE + 3] = 0;      // Wait mem count
-
-[DISK_STATUS_TABLE + 5] = 82;   // max mem usage
-[DISK_STATUS_TABLE + 6] = 0;    // disk access
-[DISK_STATUS_TABLE + 7] = 0;    // context switch
-[TERMINAL_STATUS_TABLE  + 2] = 0;   // kernel switch
 
 return;

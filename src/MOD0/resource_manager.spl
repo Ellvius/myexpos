@@ -18,6 +18,54 @@ if(functionNum == ACQUIRE_DISK) then
 endif;
 
 
+if(functionNum == ACQUIRE_INODE) then
+    alias inodeIndex R3;
+
+    while([FILE_STATUS_TABLE + inodeIndex * 4] != -1) do
+        [PROCESS_TABLE + currentPID * 16 + 4] = WAIT_FILE;
+        [PROCESS_TABLE + currentPID * 16 + 5] = inodeIndex;
+
+        multipush(R1,R2,R3);
+        call SCHEDULER;
+        multipop(R1,R2,R3);
+    endwhile;
+
+    if([INODE_TABLE + inodeIndex * 16 + 1] == -1) then
+        R0 = -1;
+        return;
+    endif;
+
+    [FILE_STATUS_TABLE + inodeIndex * 4] = currentPID;
+    
+    R0 = 0;
+    return;
+endif;
+
+
+if(functionNum == RELEASE_INODE) then
+    alias inodeIndex R3;
+
+    if([FILE_STATUS_TABLE + inodeIndex * 4] != currentPID) then
+        R0 = -1;
+        return;
+    endif;
+
+    [FILE_STATUS_TABLE + inodeIndex * 4] = -1;
+    alias i R4;
+    i = 0;
+
+    while(i < MAX_PROC_NUM) do
+        if([PROCESS_TABLE + i * 16 + 4] == WAIT_FILE && [PROCESS_TABLE + i * 16 + 5] == inodeIndex) then
+            [PROCESS_TABLE + i * 16 + 4] = READY;
+        endif;
+        i = i + 1;
+    endwhile;  
+
+    R0 = 0;
+    return; 
+endif;
+
+
 if(functionNum == ACQUIRE_SEMAPHORE) then
     alias i R3;
     i = 0;

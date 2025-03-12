@@ -1,4 +1,3 @@
-[TERMINAL_STATUS_TABLE + 2] = [TERMINAL_STATUS_TABLE + 2] + 1;
 // Set mode to the system call number
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 7;
 

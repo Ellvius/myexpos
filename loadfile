@@ -12,6 +12,7 @@ load --library $HOME/myexpos/expl/library.lib
 load --int=timer $HOME/myexpos/src/INT_TIMER/timer_interrupt.xsm
 load --int=disk $HOME/myexpos/src/INT_DISK/disk_interrupt.xsm
 load --int=console $HOME/myexpos/src/INT_CONSOLE/console_interrupt.xsm
+load --int=4 $HOME/myexpos/src/INT4/interrupt_4.xsm
 load --int=6 $HOME/myexpos/src/INT6/interrupt_6.xsm
 load --int=7 $HOME/myexpos/src/INT7/interrupt_7.xsm
 load --int=8 $HOME/myexpos/src/INT8/interrupt_8.xsm
@@ -43,3 +44,7 @@ rm msort1.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/msort1.xsm
 rm msort2.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/msort2.xsm
+rm create.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/create.xsm
+rm delete.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/delete.xsm

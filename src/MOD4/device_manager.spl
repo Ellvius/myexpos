@@ -2,6 +2,33 @@ alias functionNum R1;
 alias currentPID R2;
 
 
+if(functionNum == DISK_STORE) then
+    alias pageNum R3;
+    alias blockNum R4;
+    
+    multipush(R1, R2, R3, R4);
+
+    R1 = ACQUIRE_DISK;
+    R2 = currentPID;
+    call RESOURCE_MANAGER;
+
+    multipop(R1, R2, R3, R4);
+
+    [DISK_STATUS_TABLE + 1] = 1;
+    [DISK_STATUS_TABLE + 2] = pageNum;
+    [DISK_STATUS_TABLE + 3] = blockNum;
+
+    store(pageNum,blockNum);
+
+    [PROCESS_TABLE + currentPID * 16 + 4] = WAIT_DISK;
+
+    multipush(R1, R2, R3, R4);
+    call SCHEDULER;
+    multipop(R1, R2, R3, R4);
+
+    return;
+endif;
+
 
 if(functionNum == DISK_LOAD) then
     alias pageNum R3;
@@ -21,16 +48,13 @@ if(functionNum == DISK_LOAD) then
 
     load(pageNum, blockNum);
     [PROCESS_TABLE + currentPID * 16 + 4] = WAIT_DISK;
-    [DISK_STATUS_TABLE + 6] = [DISK_STATUS_TABLE + 6] + 1;
     
     multipush(R1, R2, R3, R4);
     call SCHEDULER;
     multipop(R1, R2, R3, R4);
 
     return;
-
 endif;
-
 
 
 if(functionNum == TERMINAL_WRITE) then
@@ -51,10 +75,7 @@ if(functionNum == TERMINAL_WRITE) then
     multipop(R1, R2, R3);
     
     return;
-
 endif;
-
-
 
 
 if(functionNum == TERMINAL_READ)
@@ -80,8 +101,6 @@ then
     [physicalReadAddr] = [PROCESS_TABLE + (currentPID*16) + 8];
 
     return;
-
 else
     return;
-
 endif;

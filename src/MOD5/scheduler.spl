@@ -2,7 +2,7 @@ alias currentPID R0;
 currentPID = [SYSTEM_STATUS_TABLE + 1];
 
 multipush(BP);
-[DISK_STATUS_TABLE + 7] = [DISK_STATUS_TABLE + 7] + 1;
+
 alias process_table_entry R1;
 process_table_entry = PROCESS_TABLE + (currentPID * 16);
 
