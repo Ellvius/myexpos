@@ -1,0 +1,89 @@
+alias userSP R0; 
+userSP = SP;
+
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1;
+
+alias systemCallNumber R1;
+alias mode R2;
+alias returnVal R3;
+
+mode = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9;
+systemCallNumber = [[PTBR + 2 * ((userSP - 5) / 512)] * 512 + (userSP - 5) % 512];
+[mode] = systemCallNumber;
+returnVal = [PTBR + 2*((userSP - 1) / 512)] * 512 + ((userSP - 1) % 512);
+
+if(systemCallNumber == INT_OPEN) then
+    alias fileName R4;
+    alias RESOURCE_TABLE R5;
+    alias i R6;
+
+    fileName = [[PTBR + 2*((userSP - 4) / 512)] * 512 + ((userSP - 4) % 512)];
+    RESOURCE_TABLE = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET;
+    i = 0;
+
+    while( i < 8) do
+        if([RESOURCE_TABLE + i * 2] == -1) then
+            break;
+        endif;
+        i = i + 1;
+    endwhile;
+
+    if(i == 8) then
+        [returnVal] = -3;
+    else 
+        alias fileTableIndex R7;
+
+        multipush(R0,R1,R2,R3,R4,R5,R6);
+        
+        R1 = OPEN;
+        R2 = fileName;
+        call FILE_MANAGER;
+        fileTableIndex = R0;
+
+        multipop(R0,R1,R2,R3,R4,R5,R6);
+
+        if(fileTableIndex < 0) then
+            [returnVal] = fileTableIndex;
+        else
+            [RESOURCE_TABLE + i * 2] = FILE;
+            [RESOURCE_TABLE + i * 2 + 1] = fileTableIndex;
+            [returnVal] = i;
+        endif;
+    endif;
+endif;
+
+
+if(systemCallNumber == INT_CLOSE) then
+    alias fileDesc R4;
+    fileDesc = [[PTBR + 2*((userSP - 4) / 512)] * 512 + ((userSP - 4) % 512)];
+
+    if(fileDesc < 0 || fileDesc > 7) then
+        [returnVal] = -1;
+    else
+        alias RESOURCE_TABLE R5;
+        RESOURCE_TABLE = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET;
+
+        if([RESOURCE_TABLE + fileDesc * 2] != FILE) then
+            [returnVal] = -1;
+        else
+            multipush(R0,R1,R2,R3,R4,R5);
+
+            R1 = CLOSE;
+            R2 = [RESOURCE_TABLE + fileDesc * 2 + 1];
+            call FILE_MANAGER;
+
+            multipop(R0,R1,R2,R3,R4,R5);
+
+            [RESOURCE_TABLE + fileDesc * 2] = -1;
+            [RESOURCE_TABLE + fileDesc * 2 + 1] = -1;
+
+            [returnVal] = 0;
+        endif;
+    endif;
+
+endif;
+
+SP = userSP;
+[mode] = 0;
+ireturn;

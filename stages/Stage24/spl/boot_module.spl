@@ -1,0 +1,246 @@
+// Load disk free list
+loadi(61,2);
+
+// Load inode User table 
+loadi(59,3);
+loadi(60,4);
+
+// Load root file
+loadi(62,5);
+
+// Load init 
+loadi(65,7);
+loadi(66,8);
+
+// Load library
+loadi(63,13);
+loadi(64,14);
+
+// Load exception handler
+loadi(2,15);
+loadi(3,16);
+
+// Load timer interrupt handler
+loadi(4,17);
+loadi(5,18);
+
+// Load disk interrupt handler
+loadi(6,19);
+loadi(7,20);
+
+// Load console interrupt handler
+loadi(8,21);
+loadi(9,22);
+
+// Load INT 4 module
+loadi(10,23);
+loadi(11,24);
+
+// Load INT 5 module
+loadi(12,25);
+loadi(13,26);
+
+// Load INT 6 module
+loadi(14,27);
+loadi(15,28);
+
+// Load INT 7 module
+loadi(16,29);
+loadi(17,30);
+
+// Load INT 8 module
+loadi(18,31);
+loadi(19,32);
+
+// Load INT 9 module
+loadi(20,33);
+loadi(21,34);
+
+// Load INT 10 module
+loadi(22,35);
+loadi(23,36);
+
+// Load INT 11 module
+loadi(24,37);
+loadi(25,38);
+
+// Load INT 13 module
+loadi(28,41);
+loadi(29,42);
+
+// Load INT 14 module
+loadi(30,43);
+loadi(31,44);
+
+// Load INT 15 module
+loadi(32,45);
+loadi(33,46);
+
+// Load Resource Manager MODULE_0
+loadi(40,53);
+loadi(41,54);
+
+// Load Process Manager MODULE_1
+loadi(42,55);
+loadi(43,56);
+
+// Load Memory Manager MODULE_2
+loadi(44,57);
+loadi(45,58);
+
+// Load File Manager MODULE_3
+loadi(46,59);
+loadi(47,60);
+
+// Load Device Manager MODULE_4
+loadi(48,61);
+loadi(49,62);
+
+// Load Scheduler MODULE_5
+loadi(50,63);
+loadi(51,64);
+
+
+// Terminal Status Table
+[TERMINAL_STATUS_TABLE] = 0;
+
+// Disk Status Table
+[DISK_STATUS_TABLE] = 0;
+
+[SYSTEM_STATUS_TABLE + 2] = 45;     // Mem free count
+[SYSTEM_STATUS_TABLE + 3] = 0;      // Wait mem count
+
+alias i R0;
+
+// Initialize memory free list
+i = 0;
+
+while(i < 128) do
+    if (i < 83) then
+        [MEMORY_FREE_LIST + i] = 1;
+    else
+        [MEMORY_FREE_LIST + i] = 0;
+    endif;
+    i = i + 1;
+endwhile;
+
+
+// Initialize Semaphore table
+i = 0;
+
+while(i < MAX_SEM_COUNT) do
+    [SEMAPHORE_TABLE + i * 4] = -1;
+    [SEMAPHORE_TABLE + i * 4 + 1] = 0;
+    i = i + 1;
+endwhile;
+
+
+// Initialize File status table
+i = 0;
+
+while(i < MAX_FILE_NUM) do
+    [FILE_STATUS_TABLE + i * 4] = -1;
+    [FILE_STATUS_TABLE + i * 4 + 1] = -1;
+    i = i + 1;
+endwhile;
+
+
+// Initialize Buffer table
+i = 0;
+
+while(i < MAX_BUFFER) do
+    [BUFFER_TABLE + i * 4] = -1;
+    [BUFFER_TABLE + i * 4 + 1] = 0;
+    [BUFFER_TABLE + i * 4 + 2] = -1;
+    i = i + 1;
+endwhile;
+
+
+// Initialize Open File table
+i = 0;
+
+while(i < MAX_OPENFILE_NUM) do
+    [OPEN_FILE_TABLE + i * 4] = -1;
+    [OPEN_FILE_TABLE + i * 4 + 1] = 0;
+    i = i + 1;
+endwhile;
+
+
+// Set status of other process to TERMINATED
+i = 2;
+
+while(i < MAX_PROC_NUM) do
+    [PROCESS_TABLE +  i*16 + 4] = TERMINATED;
+    i= i + 1;
+endwhile;
+
+
+// For init process
+
+PTBR = PAGE_TABLE_BASE + 20;
+PTLR = 10;
+
+// Library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+// Heap
+[PTBR+4] = 78;
+[PTBR+5] = "0110";
+[PTBR+6] = 79;
+[PTBR+7] = "0110";
+
+// Code
+[PTBR+8] = 65;
+[PTBR+9] = "0100";
+[PTBR+10] = 66;
+[PTBR+11] = "0100";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+// Stack
+[PTBR+16] = 76;
+[PTBR+17] = "0110";
+[PTBR+18] = 77;
+[PTBR+19] = "0110";
+
+// Process table for init process
+[PROCESS_TABLE + 16 + 1] = 1;                           // PID
+[PROCESS_TABLE + 16 + 3] = 1;                           // USERID
+[PROCESS_TABLE + 16 + 4] = CREATED;                     // Status
+[PROCESS_TABLE + 16 + 11] = 80;                         // User area page
+[PROCESS_TABLE + 16 + 12] = 0;                          // KPTR
+[PROCESS_TABLE + 16 + 13] = 8 * 512;                    // UPTR
+[PROCESS_TABLE + 16 + 14] = PAGE_TABLE_BASE + 20;       // PTBR
+[PROCESS_TABLE + 16 + 15] = 10;                         // PTLR
+
+[76*512] = [65*512 + 1];
+
+// Initialize the per process table for init 
+i = 0;
+while(i < 16) do
+    [[PROCESS_TABLE + 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + i] = -1;
+    i = i + 1;
+endwhile;
+
+
+// Set up the Disk Map table for init
+alias diskMapTable R1;
+diskMapTable = DISK_MAP_TABLE + 10;
+
+[diskMapTable + 0] = -1;            // Unused
+[diskMapTable + 1] = -1;            // Unused
+[diskMapTable + 2] = -1;            // Heap 1
+[diskMapTable + 3] = -1;            // Heap 2
+[diskMapTable + 4] =  7;            // Code 1
+[diskMapTable + 5] =  8;            // Code 2
+[diskMapTable + 6] = -1;            // Code 3
+[diskMapTable + 7] = -1;            // Code 4
+[diskMapTable + 8] = -1;            // Stack 1
+[diskMapTable + 9] = -1;            // Stack 2
+
+return;

@@ -1,0 +1,76 @@
+alias userSP R0; 
+userSP = SP;
+
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1;
+
+alias systemCallNumber R1;
+systemCallNumber = [[PTBR + 2 * ((userSP - 5) / 512)] * 512 + (userSP - 5) % 512];
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = systemCallNumber;
+
+
+if(systemCallNumber == INT_SEMGET) then
+    alias i R2;
+    alias RESOURCE_TABLE R3;
+    i = 0;
+    RESOURCE_TABLE = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET;
+
+    while(i < 8) do
+        if([RESOURCE_TABLE + i * 2] == -1) then
+            break;
+        endif;
+        i = i + 1;
+    endwhile;
+
+    if(i == 8) then  // No free entry in resource table
+        [[PTBR + 2*((userSP - 1) / 512)] * 512 + ((userSP - 1) % 512)] = -1;
+    else
+        [RESOURCE_TABLE + i * 2] = SEMAPHORE;
+        alias SemIndex R4;
+
+        multipush(R0,R1,R2,R3);
+
+        R1 = ACQUIRE_SEMAPHORE;
+        R2 = [SYSTEM_STATUS_TABLE + 1];
+        call RESOURCE_MANAGER;
+        SemIndex = R0;
+
+        multipop(R0,R1,R2,R3);
+
+        if(SemIndex == -1) then   // No free semaphores
+            [[PTBR + 2*((userSP - 1) / 512)] * 512 + ((userSP - 1) % 512)] = -2;
+        else
+            [RESOURCE_TABLE + i * 2 + 1] = SemIndex;
+            [[PTBR + 2*((userSP - 1) / 512)] * 512 + ((userSP - 1) % 512)] = i;
+        endif;
+    endif;
+endif;
+
+
+if(systemCallNumber == INT_SEMRELEASE) then
+    alias SEMID R2;
+    alias RESOURCE_TABLE R3;
+    SEMID = [[PTBR + 2*((userSP - 4) / 512)] * 512 + ((userSP - 4) % 512)];
+    RESOURCE_TABLE = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET;
+
+    if(SEMID < 0 || SEMID > 7 || [RESOURCE_TABLE + SEMID * 2] != 1) then
+        [[PTBR + 2*((userSP - 1) / 512)] * 512 + ((userSP - 1) % 512)] = -1;
+    else
+        multipush(R0,R1,R2,R3);
+
+        R1 = RELEASE_SEMAPHORE;
+        R2 = [SYSTEM_STATUS_TABLE + 1];
+        R3 = [RESOURCE_TABLE + SEMID * 2 + 1];
+        call RESOURCE_MANAGER;
+
+        multipop(R0,R1,R2,R3);
+
+        [RESOURCE_TABLE + SEMID * 2] = -1;
+        [[PTBR + 2*((userSP - 1) / 512)] * 512 + ((userSP - 1) % 512)] = 0;
+    endif;
+endif;
+
+
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13];
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+ireturn;

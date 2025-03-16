@@ -50,5 +50,11 @@ rm create.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/create.xsm
 rm delete.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/delete.xsm
-rm cons.xsm
-load --exec $HOME/myexpos/src/EXECUTABLES/cons.xsm
+rm readfile.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/readfile.xsm
+rm syncread.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/syncread.xsm
+rm sample.dat
+load --data $HOME/myexpos/src/DATA_FILES/sample.dat
+rm numbers.dat
+load --data $HOME/myexpos/src/DATA_FILES/numbers.dat
