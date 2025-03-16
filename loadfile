@@ -48,3 +48,5 @@ rm create.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/create.xsm
 rm delete.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/delete.xsm
+rm cons.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/cons.xsm
