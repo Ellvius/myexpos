@@ -151,7 +151,7 @@ i = 0;
 while(i < MAX_BUFFER) do
     [BUFFER_TABLE + i * 4] = -1;
     [BUFFER_TABLE + i * 4 + 1] = 0;
-    [BUFFER_TABLE + i * 4 + 1] = -1;
+    [BUFFER_TABLE + i * 4 + 2] = -1;
     i = i + 1;
 endwhile;
 

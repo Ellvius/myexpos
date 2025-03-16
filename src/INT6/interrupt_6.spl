@@ -74,6 +74,7 @@ else
                     else
                         [physicalBufferAddress] = [ROOT_FILE + lseek];
                         [OPEN_FILE_TABLE + fileTableIndex * 4 + 2] = lseek + 1;
+                        [returnVal] = 0;
                     endif;
                 else
                     if(lseek == [INODE_TABLE + inodeIndex * 16 + 2]) then
@@ -91,7 +92,7 @@ else
                         multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8);
 
                         R1 = BUFFERED_READ;
-                        R2 = [INODE_TABLE + inodeIndex * 16 + 9 + lseek / 512];     // block num
+                        R2 = [INODE_TABLE + inodeIndex * 16 + 8 + lseek / 512];     // block num
                         R3 = lseek % 512;
                         R4 = physicalBufferAddress;
                         call FILE_MANAGER;
@@ -99,6 +100,7 @@ else
                         multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8);
 
                         [OPEN_FILE_TABLE + fileTableIndex * 4 + 2] = lseek + 1;
+                        [returnVal] = 0;
                     endif;
                 endif;  
 
@@ -110,12 +112,12 @@ else
                 call RESOURCE_MANAGER;
 
                 multipop(R0,R2);
+
             endif;
         endif;
     endif;  
 endif;
 
-[returnVal] = 0;
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 0;
 SP = userSP;
 ireturn;
