@@ -36,6 +36,10 @@ loadi(9,22);
 loadi(10,23);
 loadi(11,24);
 
+// Load INT 5 module
+loadi(12,25);
+loadi(13,26);
+
 // Load INT 6 module
 loadi(14,27);
 loadi(15,28);
@@ -84,6 +88,10 @@ loadi(43,56);
 loadi(44,57);
 loadi(45,58);
 
+// Load File Manager MODULE_3
+loadi(46,59);
+loadi(47,60);
+
 // Load Device Manager MODULE_4
 loadi(48,61);
 loadi(49,62);
@@ -99,6 +107,72 @@ loadi(51,64);
 // Disk Status Table
 [DISK_STATUS_TABLE] = 0;
 
+[SYSTEM_STATUS_TABLE + 2] = 45;     // Mem free count
+[SYSTEM_STATUS_TABLE + 3] = 0;      // Wait mem count
+
+alias i R0;
+
+// Initialize memory free list
+i = 0;
+
+while(i < 128) do
+    if (i < 83) then
+        [MEMORY_FREE_LIST + i] = 1;
+    else
+        [MEMORY_FREE_LIST + i] = 0;
+    endif;
+    i = i + 1;
+endwhile;
+
+
+// Initialize Semaphore table
+i = 0;
+
+while(i < MAX_SEM_COUNT) do
+    [SEMAPHORE_TABLE + i * 4] = -1;
+    [SEMAPHORE_TABLE + i * 4 + 1] = 0;
+    i = i + 1;
+endwhile;
+
+
+// Initialize File status table
+i = 0;
+
+while(i < MAX_FILE_NUM) do
+    [FILE_STATUS_TABLE + i * 4] = -1;
+    [FILE_STATUS_TABLE + i * 4 + 1] = -1;
+    i = i + 1;
+endwhile;
+
+
+// Initialize Buffer table
+i = 0;
+
+while(i < MAX_BUFFER) do
+    [BUFFER_TABLE + i * 4] = -1;
+    [BUFFER_TABLE + i * 4 + 1] = 0;
+    [BUFFER_TABLE + i * 4 + 1] = -1;
+    i = i + 1;
+endwhile;
+
+
+// Initialize Open File table
+i = 0;
+
+while(i < MAX_OPENFILE_NUM) do
+    [OPEN_FILE_TABLE + i * 4] = -1;
+    [OPEN_FILE_TABLE + i * 4 + 1] = 0;
+    i = i + 1;
+endwhile;
+
+
+// Set status of other process to TERMINATED
+i = 2;
+
+while(i < MAX_PROC_NUM) do
+    [PROCESS_TABLE +  i*16 + 4] = TERMINATED;
+    i= i + 1;
+endwhile;
 
 
 // For init process
@@ -146,25 +220,7 @@ PTLR = 10;
 
 [76*512] = [65*512 + 1];
 
-// Set the status of other processes to be terminated
-[PROCESS_TABLE +  2*16 + 4] = TERMINATED;
-[PROCESS_TABLE +  3*16 + 4] = TERMINATED;
-[PROCESS_TABLE +  4*16 + 4] = TERMINATED;
-[PROCESS_TABLE +  5*16 + 4] = TERMINATED;
-[PROCESS_TABLE +  6*16 + 4] = TERMINATED;
-[PROCESS_TABLE +  7*16 + 4] = TERMINATED;
-[PROCESS_TABLE +  8*16 + 4] = TERMINATED;
-[PROCESS_TABLE +  9*16 + 4] = TERMINATED;
-[PROCESS_TABLE + 10*16 + 4] = TERMINATED;
-[PROCESS_TABLE + 11*16 + 4] = TERMINATED;
-[PROCESS_TABLE + 12*16 + 4] = TERMINATED;
-[PROCESS_TABLE + 13*16 + 4] = TERMINATED;
-[PROCESS_TABLE + 14*16 + 4] = TERMINATED;
-[PROCESS_TABLE + 15*16 + 4] = TERMINATED;
-
-
-// Initialize the per process table 
-alias i R0;
+// Initialize the per process table for init 
 i = 0;
 while(i < 16) do
     [[PROCESS_TABLE + 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + i] = -1;
@@ -172,7 +228,7 @@ while(i < 16) do
 endwhile;
 
 
-// Set up the Disk Map table
+// Set up the Disk Map table for init
 alias diskMapTable R1;
 diskMapTable = DISK_MAP_TABLE + 10;
 
@@ -186,59 +242,5 @@ diskMapTable = DISK_MAP_TABLE + 10;
 [diskMapTable + 7] = -1;            // Code 4
 [diskMapTable + 8] = -1;            // Stack 1
 [diskMapTable + 9] = -1;            // Stack 2
-
-
-
-// Initialize memory free list
-i = 0;
-
-while(i < 128) do
-    if (i < 83) 
-    then
-        [MEMORY_FREE_LIST + i] = 1;
-    
-    else
-        [MEMORY_FREE_LIST + i] = 0;
-    endif;
-
-    i = i + 1;
-endwhile;
-
-
-// Initialize Semaphore table
-i = 0;
-
-while(i < MAX_SEM_COUNT) do
-    [SEMAPHORE_TABLE + i * 4] = -1;
-    [SEMAPHORE_TABLE + i * 4 + 1] = 0;
-
-    i = i + 1;
-endwhile;
-
-
-// Initialize File status table
-i = 0;
-
-while(i < MAX_FILE_NUM) do
-    [FILE_STATUS_TABLE + i * 4] = -1;
-    [FILE_STATUS_TABLE + i * 4 + 1] = -1;
-
-    i = i + 1;
-endwhile;
-
-
-// Initialize Buffer table
-i = 0;
-
-while(i < MAX_BUFFER) do
-    [BUFFER_TABLE + i * 4] = -1;
-    [BUFFER_TABLE + i * 4 + 1] = 0;
-    [BUFFER_TABLE + i * 4 + 1] = -1;
-
-    i = i + 1;
-endwhile;
-
-[SYSTEM_STATUS_TABLE + 2] = 45;     // Mem free count
-[SYSTEM_STATUS_TABLE + 3] = 0;      // Wait mem count
 
 return;

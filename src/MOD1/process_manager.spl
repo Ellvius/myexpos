@@ -44,6 +44,17 @@ if (functionNum == FREE_USER_AREA_PAGE) then
 
             multipop(R0,R1,R2,R3,R4);
         endif;
+
+        if([userAreaPage * 512 + RESOURCE_TABLE_OFFSET + i * 2] == FILE) then
+            multipush(R0,R1,R2,R3,R4);
+
+            R1 = CLOSE;
+            R2 = [userAreaPage * 512 + RESOURCE_TABLE_OFFSET + i * 2 + 1];
+            call FILE_MANAGER;
+
+            multipop(R0,R1,R2,R3,R4);
+        endif;
+
         i = i + 1;
     endwhile;
 

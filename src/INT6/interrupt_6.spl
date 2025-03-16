@@ -1,50 +1,121 @@
-// Set mode to the system call number
-[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 7;
-
 alias userSP R0;
 userSP = SP;
 
-// Switch user stack to kernel stack
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = INT_READ;
+
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13] = SP;
 SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 11]*512 - 1;
 
-// Access arg 1
-alias physicalPageNum R1;
-alias offset R2;
-alias fileDescPhysicalAddr R3;
-physicalPageNum = [PTBR + 2 * ((userSP - 4)/512)];
-offset = (userSP - 4) % 512;
-fileDescPhysicalAddr = physicalPageNum * 512 + offset;
-alias fileDescriptor R4;
-fileDescriptor = [fileDescPhysicalAddr];
+alias fileDesc R1;
+alias returnVal R2;
+alias readBuffer R3;
 
-if(fileDescriptor != -1)
-then
-    alias physicalAddrRetVal R5;
-    physicalAddrRetVal = ([PTBR + 2 * ((userSP - 1)/512)] * 512) + ((userSP - 1) % 512);
-    [physicalAddrRetVal] = -1;
+fileDesc = [[PTBR + 2 * ((userSP - 4)/512)] * 512 + (userSP - 4) % 512];
+readBuffer = [([PTBR + 2 * ((userSP - 3)/512)] * 512) + ((userSP - 3) % 512)];
+returnVal = [PTBR + 2*((userSP - 1) / 512)] * 512 + ((userSP - 1) % 512);
 
-else
-    alias word R5;
-    word = [([PTBR + 2 * ((userSP - 3)/512)] * 512) + ((userSP - 3) % 512)];
-
-    multipush(R0, R1, R2, R3, R4, R5);
+if(fileDesc == -1) then
+    multipush(R0,R1,R2,R3);
 
     R1 = TERMINAL_READ;
+    R3 = readBuffer;
     R2 = [SYSTEM_STATUS_TABLE + 1];
-    R3 = word;
     call DEVICE_MANAGER;
     
-    multipop(R0, R1, R2, R3, R4, R5);
+    multipop(R0,R1,R2,R3);
 
-    alias physicalAddrRetVal R6;
-    physicalAddrRetVal = ([PTBR + 2 * ((userSP - 1)/512)] * 512) + ((userSP - 1) % 512);
-    [physicalAddrRetVal] = 0;
+else
+    if(fileDesc < 0 || fileDesc > 7) then
+        [returnVal] = -1;
+    else
+        alias RESOURCE_TABLE R4;
+        RESOURCE_TABLE = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET;
 
+        if([RESOURCE_TABLE + fileDesc * 2] != FILE) then
+            [returnVal] = -1;
+        else
+            alias fileTableIndex R5;
+            alias inodeIndex R6;
+            alias lockingStatus R7;
+
+            fileTableIndex = [RESOURCE_TABLE + fileDesc * 2 + 1];
+            inodeIndex = [OPEN_FILE_TABLE + fileTableIndex * 4];
+
+            multipush(R0,R1,R2,R3,R4,R5,R6);
+
+            R1 = ACQUIRE_INODE;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            R3 = inodeIndex;
+            call RESOURCE_MANAGER;
+            lockingStatus = R0;
+
+            multipop(R0,R1,R2,R3,R4,R5,R6);
+
+            if(lockingStatus == -1) then
+                [returnVal] = -1;
+            else
+                alias lseek R7;
+                alias physicalBufferAddress R8;
+                lseek = [OPEN_FILE_TABLE + fileTableIndex * 4 + 2];
+                physicalBufferAddress = [PTBR + 2 * (readBuffer / 512)] * 512 + (readBuffer % 512);
+
+                if(inodeIndex == INODE_ROOT) then
+                    if(lseek == 480) then
+                        multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+
+                        R1 = RELEASE_INODE;
+                        R2 = [SYSTEM_STATUS_TABLE + 1];
+                        R3 = inodeIndex;
+                        call RESOURCE_MANAGER;
+
+                        multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+
+                        [returnVal] = -2;
+                    else
+                        [physicalBufferAddress] = [ROOT_FILE + lseek];
+                        [OPEN_FILE_TABLE + fileTableIndex * 4 + 2] = lseek + 1;
+                    endif;
+                else
+                    if(lseek == [INODE_TABLE + inodeIndex * 16 + 2]) then
+                        multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+
+                        R1 = RELEASE_INODE;
+                        R2 = [SYSTEM_STATUS_TABLE + 1];
+                        R3 = inodeIndex;
+                        call RESOURCE_MANAGER;
+
+                        multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+
+                        [returnVal] = -2;
+                    else
+                        multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+
+                        R1 = BUFFERED_READ;
+                        R2 = [INODE_TABLE + inodeIndex * 16 + 9 + lseek / 512];     // block num
+                        R3 = lseek % 512;
+                        R4 = physicalBufferAddress;
+                        call FILE_MANAGER;
+
+                        multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8);
+
+                        [OPEN_FILE_TABLE + fileTableIndex * 4 + 2] = lseek + 1;
+                    endif;
+                endif;  
+
+                multipush(R0,R2);
+
+                R1 = RELEASE_INODE;
+                R2 = [SYSTEM_STATUS_TABLE + 1];
+                R3 = inodeIndex;
+                call RESOURCE_MANAGER;
+
+                multipop(R0,R2);
+            endif;
+        endif;
+    endif;  
 endif;
 
-// Reset mode flag to 0
+[returnVal] = 0;
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 0;
-
 SP = userSP;
 ireturn;
