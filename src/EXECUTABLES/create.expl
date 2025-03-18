@@ -12,7 +12,7 @@ int main(){
         temp = exposcall("Create", filename, permission);
 
         if(temp == 0) then
-            write("successful");
+            write("successful!");
         endif;
 
         if(temp == -1) then

@@ -5,7 +5,7 @@ int main(){
 
     begin
         num = 1;
-        while ( num < 200) do
+        while ( num < 100) do
             if((num % 2) == 1) then
                 temp = exposcall("Write", -2, num);
             endif;

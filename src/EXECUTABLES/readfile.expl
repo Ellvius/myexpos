@@ -9,19 +9,29 @@ int main(){
         read(filename);
 
         fileDesc = exposcall("Open",filename);
-        
-        temp = exposcall("Read", fileDesc, word);
-        while(temp == 0) do
-            write(word);
-            temp = exposcall("Read", fileDesc, word);
-        endwhile;
-
-        if(temp == -1) then
-            write("NoSpace");
+        if(fileDesc == -1) then
+            write("NotFound");
+        endif;
+        if(fileDesc == -2) then
+            write("FileLimit");
+        endif;
+        if(fileDesc == -3) then
+            write("ResLimit");
         endif;
 
-        temp = exposcall("Close", fileDesc);
-        write("finished!");
+        if(fileDesc >= 0) then
+            temp = exposcall("Read", fileDesc, word);
+            while(temp == 0) do
+                write(word);
+                temp = exposcall("Read", fileDesc, word);
+            endwhile;
+            if(temp == -1) then
+                write("NoSpace");
+            endif;
+
+            temp = exposcall("Close", fileDesc);
+            write("finished!");
+        endif;
         return 0;
     end
 }
