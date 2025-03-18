@@ -24,6 +24,14 @@ load --int=11 $HOME/myexpos/src/INT11/interrupt_11.xsm
 load --int=13 $HOME/myexpos/src/INT13/interrupt_13.xsm
 load --int=14 $HOME/myexpos/src/INT14/interrupt_14.xsm
 load --int=15 $HOME/myexpos/src/INT15/interrupt_15.xsm
+rm rm.xsm
+load --exec $HOME/myexpos/src/SYSTEM_UTILITIES/rm.xsm
+rm cat.xsm
+load --exec $HOME/myexpos/src/SYSTEM_UTILITIES/cat.xsm
+rm ls.xsm
+load --exec $HOME/myexpos/src/SYSTEM_UTILITIES/ls.xsm
+rm cp.xsm
+load --exec $HOME/myexpos/src/SYSTEM_UTILITIES/cp.xsm
 rm odd.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/odd.xsm
 rm msort1.xsm

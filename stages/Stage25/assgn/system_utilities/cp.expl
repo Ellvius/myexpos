@@ -1,0 +1,61 @@
+int main(){
+    decl
+        int temp, fd1, fd2, p1, p2;
+        str word, file1, file2;
+    enddecl
+
+    begin
+        write("File1: ");
+        read(file1);
+
+        fd1 = exposcall("Open",file1);
+        if(fd1 == -1) then
+            write("NotFound");
+        endif;
+        if(fd1 == -2) then
+            write("FileLimit");
+        endif;
+        if(fd1 == -3) then
+            write("ResLimit");
+        endif;
+
+        if(fd1 >= 0) then
+            write("File2: ");
+            read(file2);
+
+            fd2 = exposcall("Open",file2);
+            if(fd2 == -1) then
+                write("NotFound");
+            endif;
+            if(fd2 == -2) then
+                write("FileLimit");
+            endif;
+            if(fd2 == -3) then
+                write("ResLimit");
+            endif;
+
+            if(fd2 >= 0) then
+                temp = exposcall("Close", fd2);
+
+                temp = exposcall("Delete", file2);
+                temp = exposcall("Create", file2, 1);
+
+                fd2 = exposcall("Open", file2);
+                
+                temp = exposcall("Read", fd1, word);
+                while(temp == 0) do
+                    temp = exposcall("Write", fd2, word);
+                    temp = exposcall("Read", fd1, word);
+                endwhile;
+
+                if(temp == -1) then
+                    write("NoSpace");
+                endif;
+
+                temp = exposcall("Close", fd2);
+            endif;
+            temp = exposcall("Close", fd1);
+        endif;
+        return 0;
+    end
+}

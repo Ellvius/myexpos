@@ -1,0 +1,36 @@
+int main(){
+    decl
+        int temp, fileDesc;
+        str filename, word;
+    enddecl
+
+    begin   
+        write("Filename:");
+        read(filename);
+
+        fileDesc = exposcall("Open",filename);
+        if(fileDesc == -1) then
+            write("NotFound");
+        endif;
+        if(fileDesc == -2) then
+            write("FileLimit");
+        endif;
+        if(fileDesc == -3) then
+            write("ResLimit");
+        endif;
+
+        if(fileDesc >= 0) then
+            temp = exposcall("Read", fileDesc, word);
+            while(temp == 0) do
+                write(word);
+                temp = exposcall("Read", fileDesc, word);
+            endwhile;
+            if(temp == -1) then
+                write("NoSpace");
+            endif;
+
+            temp = exposcall("Close", fileDesc);
+        endif;
+        return 0;
+    end
+}

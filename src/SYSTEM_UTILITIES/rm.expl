@@ -1,0 +1,26 @@
+int main(){
+    decl
+        int temp;
+        str filename;
+    enddecl
+
+    begin
+        write("Filename:");
+        read(filename);
+        temp = exposcall("Delete", filename);
+        
+        if(temp == 0) then
+            write("Deleted!");
+        endif;
+
+        if(temp == -1) then
+            write("Denied");
+        endif;
+
+        if(temp == -2) then
+            write("OpenFile");
+        endif;
+
+        return 0;
+    end
+}
