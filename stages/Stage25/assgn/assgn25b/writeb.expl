@@ -1,0 +1,47 @@
+int main(){
+    decl
+        int temp, fileDesc, i, pointer;
+        str word, filename;
+    enddecl
+
+    begin
+        write("Filename:");
+        read(filename);
+
+        fileDesc = exposcall("Open", filename);
+         if(fileDesc == -1) then
+            write("NotFound");
+        endif;
+        if(fileDesc == -2) then
+            write("FileLimit");
+        endif;
+        if(fileDesc == -3) then
+            write("ResLimit");
+        endif;
+
+        if(fileDesc >= 0) then
+            pointer = exposcall("Seek", fileDesc, 2048);
+            i = 2000;
+            while(i <= 2513) do
+                temp = exposcall("Write", fileDesc, i);
+                i = i + 1;
+            endwhile;
+
+            pointer = exposcall("Seek", fileDesc, -1);
+            while(pointer == 0) do
+                temp = exposcall("Read", fileDesc, word);
+                write(word);
+                pointer = exposcall("Seek", fileDesc, -2);
+            endwhile;
+
+            if(temp == -1) then
+                write("NoSpace");
+            endif;
+
+            write("finished!");
+            temp = exposcall("Close", fileDesc);
+        endif;
+
+        return 0;
+    end
+}

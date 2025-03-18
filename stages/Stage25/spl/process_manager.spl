@@ -1,0 +1,215 @@
+alias functionNum R1;
+
+
+if (functionNum == GET_PCB_ENTRY) then
+    alias i R2;
+    i = 1;
+
+    while(i < 16) do
+        if(([PROCESS_TABLE + i * 16 + 1] == -1) || ([PROCESS_TABLE + i * 16 + 4] == TERMINATED)) then
+            [PROCESS_TABLE + i * 16 + 1] = i;
+            [PROCESS_TABLE + i * 16 + 4] = ALLOCATED;
+            [PROCESS_TABLE + i * 16 + 14] = PAGE_TABLE_BASE + 20*i;
+            [PROCESS_TABLE + i * 16 + 15] = 10;
+
+            R0 = i;
+            return;
+
+        endif;
+        i = i + 1;
+    endwhile;
+
+    R0 = -1;
+    return;
+    
+endif;
+
+
+if (functionNum == FREE_USER_AREA_PAGE) then
+    alias PID R2;
+    alias userAreaPage R3;
+    alias i R4;
+    userAreaPage = [PROCESS_TABLE + PID * 16 + 11];
+    i = 0;
+
+    while(i < 8) do
+        if([userAreaPage * 512 + RESOURCE_TABLE_OFFSET + i * 2] == SEMAPHORE) then
+            multipush(R0,R1,R2,R3,R4);
+
+            R1 = RELEASE_SEMAPHORE;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            R3 = [userAreaPage * 512 + RESOURCE_TABLE_OFFSET + i * 2 + 1];
+            call RESOURCE_MANAGER;
+
+            multipop(R0,R1,R2,R3,R4);
+        endif;
+
+        if([userAreaPage * 512 + RESOURCE_TABLE_OFFSET + i * 2] == FILE) then
+            multipush(R0,R1,R2,R3,R4);
+
+            R1 = CLOSE;
+            R2 = [userAreaPage * 512 + RESOURCE_TABLE_OFFSET + i * 2 + 1];
+            call FILE_MANAGER;
+
+            multipop(R0,R1,R2,R3,R4);
+        endif;
+
+        i = i + 1;
+    endwhile;
+
+    multipush(R1, R2, R3);
+    R1 = RELEASE_PAGE;
+    R2 = userAreaPage;
+    call MEMORY_MANAGER;
+    multipop(R1, R2, R3);
+    return;
+
+endif;
+
+
+if (functionNum == EXIT_PROCESS) then
+    alias PID R2;
+
+    if([PROCESS_TABLE + PID * 16 + 9] != 9) then 
+        alias i R3;
+        i = 0;
+        while(i < 16) do 
+            // wake up processes
+            if([PROCESS_TABLE + i * 16 + 4] == WAIT_PROCESS && [PROCESS_TABLE + i * 16 + 5] == PID) then
+                [PROCESS_TABLE + i * 16 + 4] = READY;
+            endif;
+
+            // set child processes as orphans
+            if([PROCESS_TABLE + i * 16 + 2] == PID) then
+                [PROCESS_TABLE + i * 16 + 2] = -1;
+            endif;  
+
+            i = i + 1;
+        endwhile;
+    endif;
+
+    multipush(R1, R2);
+    R1 = FREE_PAGE_TABLE;
+    R2 = PID;
+    call PROCESS_MANAGER;
+
+    R1 = FREE_USER_AREA_PAGE;
+    call PROCESS_MANAGER;
+    multipop(R1, R2);
+
+    [PROCESS_TABLE + PID * 16 + 4] = TERMINATED;
+
+    return;
+    
+endif;
+
+
+if (functionNum == FREE_PAGE_TABLE) then
+    alias PID R2;
+    PTBR = PAGE_TABLE_BASE + PID * 20;
+
+    // Invalidate Library
+    [PTBR+0] = -1;
+    [PTBR+1] = "0000";
+    [PTBR+2] = -1;
+    [PTBR+3] = "0000";
+    
+    alias index R3;
+    index = 4;
+
+    while(index < 20) do
+        if([PTBR + index] != -1) 
+        then
+
+            multipush(R1, R2, R3);
+            R1 = RELEASE_PAGE;
+            R2 = [PTBR + index];
+            call MEMORY_MANAGER;
+            multipop(R1, R2, R3);
+        endif;
+
+        // Invalidate the corresponding page table entry
+        [PTBR + index] = -1;
+        [PTBR + index + 1] = "0000";
+
+        index = index + 2;
+    endwhile;
+    
+    index = 0;
+    while(index < 10) do
+        if([DISK_MAP_TABLE + PID * 10 + index] != -1)
+        then
+            // Check if it is a stack or Heap
+            if((index == 2) || (index == 3) || (index == 8) || (index == 9))
+            then
+
+                multipush(R1, R2, R3);
+                R1 = RELEASE_BLOCK;
+                R2 = [DISK_MAP_TABLE + PID * 10 + index];
+                call MEMORY_MANAGER;
+                multipop(R1, R2, R3);
+            endif;
+        endif;
+        
+        // Set the entry to -1
+        [DISK_MAP_TABLE + PID * 10 + index] = -1;
+
+        index = index + 1;
+    endwhile;
+
+    return;
+    
+endif;
+
+
+if(functionNum == KILL_ALL) then
+    alias PID R2;
+    alias i R3;
+
+    i = 0;
+    while(i < MAX_FILE_NUM) do 
+        if([INODE_TABLE + i * 16 + 1] != -1) then
+            multipush(R1,R2,R3);
+
+            R1 = ACQUIRE_INODE;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            R3 = i;
+            call RESOURCE_MANAGER;
+
+            multipop(R1,R2,R3);
+        endif;
+        i = i + 1;
+    endwhile;
+
+    i = 2;
+    while(i < MAX_PROC_NUM ) do 
+        if(i != [SYSTEM_STATUS_TABLE + 1] && [PROCESS_TABLE + i * 16 + 4] 
+        != TERMINATED) then
+            multipush(R1,R2,R3);
+
+            R1 = EXIT_PROCESS;
+            R2 = i;
+            call PROCESS_MANAGER;
+
+            multipop(R1,R2,R3);
+        endif;
+        i = i + 1;
+    endwhile;
+
+    i = 0;
+    while(i < MAX_FILE_NUM) do 
+        if([INODE_TABLE + i * 16 + 1] != -1) then
+            multipush(R1,R2,R3);
+
+            R1 = RELEASE_INODE;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            R3 = i;
+            call RESOURCE_MANAGER;
+
+            multipop(R1,R2,R3);
+        endif;
+        i = i + 1;
+    endwhile;
+
+    return;
+endif;
