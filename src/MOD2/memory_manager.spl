@@ -59,6 +59,24 @@ then
 endif;
 
 
+if(functionNum == GET_FREE_BLOCK) then
+    alias i R2;
+    i = DISK_FREE_AREA;
+
+    while(i < DISK_SWAP_AREA) do
+        if([DISK_FREE_LIST + i] == 0) then
+            [DISK_FREE_LIST + i] = 1;
+            R0 = i;
+            return;
+        endif;
+        i = i + 1;
+    endwhile;
+
+    R0 = -1;
+    return;
+endif;
+
+
 
 
 if (functionNum == RELEASE_BLOCK) 

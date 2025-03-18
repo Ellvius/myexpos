@@ -1,44 +1,137 @@
-[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 5;
-
-// Save the user SP
 alias userSP R0;
 userSP = SP;
 
-// Update UPTR and SP to kernel stack
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = INT_WRITE;
+
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;
 SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 -1;
 
-// Access arg 1
-alias physicalPageNum R1;
-alias offset R2;
-alias fileDescPhysicalAddr R3;
-physicalPageNum = [PTBR + 2 * ((userSP - 4)/512)];
-offset = (userSP - 4) % 512;
-fileDescPhysicalAddr = physicalPageNum * 512 + offset;
-alias fileDescriptor R4;
-fileDescriptor = [fileDescPhysicalAddr];
+alias fileDesc R1;
+alias returnVal R2;
+alias word R3;
 
-if ( fileDescriptor != -2)
-then
-    alias physicalAddrRetVal R5;
-    physicalAddrRetVal = ([PTBR + 2 * ((userSP - 1)/512)] * 512) + ((userSP - 1) % 512);
-    [physicalAddrRetVal] = -1;
+fileDesc = [[PTBR + 2 * ((userSP - 4)/512)] * 512 + (userSP - 4) % 512];
+word = [([PTBR + 2 * ((userSP - 3)/512)] * 512) + ((userSP - 3) % 512)];
+returnVal = [PTBR + 2*((userSP - 1) / 512)] * 512 + ((userSP - 1) % 512);
 
-else
-    alias word R5;
-    word = [([PTBR + 2 * ((userSP - 3)/512)] * 512) + ((userSP - 3) % 512)];
-    
-    multipush(R0, R1, R2, R3, R4, R5);
+if ( fileDesc == -2) then
+    multipush(R0,R1,R2,R3);
+
     R1 = TERMINAL_WRITE;
     R2 = [SYSTEM_STATUS_TABLE + 1];
     R3 = word;
     call DEVICE_MANAGER;
-    multipop(R0, R1, R2, R3, R4, R5);
-    
-    alias physicalAddrRetVal R6;
-    physicalAddrRetVal = ([PTBR + 2 * ((userSP - 1)/512)] * 512) + ((userSP - 1) % 512);
-    [physicalAddrRetVal] = 0;
 
+    multipop(R0,R1,R2,R3);
+    
+    [returnVal] = 0;
+else   
+    if(fileDesc < 0 || fileDesc > 7) then
+        [returnVal] = -1;
+    else
+        if([[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + fileDesc * 2] != FILE) then
+            [returnVal] = -1;
+        else
+            alias fileTableIndex R4;
+            alias inodeIndex R5;
+            alias lockingStatus R6;
+
+            fileTableIndex = [[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + fileDesc * 2 + 1];
+            inodeIndex = [OPEN_FILE_TABLE + fileTableIndex * 4];
+
+            if([PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 3] != 1 && [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 3] != [INODE_TABLE + inodeIndex * 16 + 3] && [INODE_TABLE + inodeIndex * 16 + 4] == EXCLUSIVE) then
+                [returnVal] = -3;
+            else
+                multipush(R0,R1,R2,R3,R4,R5);
+
+                R1 = ACQUIRE_INODE;
+                R2 = [SYSTEM_STATUS_TABLE + 1];
+                R3 = inodeIndex;
+                call RESOURCE_MANAGER;
+                lockingStatus = R0;
+
+                multipop(R0,R1,R2,R3,R4,R5);
+
+                if(lockingStatus == -1) then
+                    [returnVal] = -1;
+                else
+                    alias lseek R6;
+                    lseek = [OPEN_FILE_TABLE + fileTableIndex * 4 + 2];
+                    
+                    if(lseek == MAX_FILE_SIZE) then
+                        multipush(R0,R1,R2,R3,R4,R5,R6);
+
+                        R1 = RELEASE_INODE;
+                        R2 = [SYSTEM_STATUS_TABLE + 1];
+                        R3 = inodeIndex;
+                        call RESOURCE_MANAGER;
+
+                        multipop(R0,R1,R2,R3,R4,R5,R6);
+                        
+                        [returnVal] = -2;
+                    else
+                        if((lseek % 512) == 0 && lseek == [INODE_TABLE + inodeIndex * 16 + 2]) then
+                            alias blockNum R7;
+                            
+                            multipush(R0,R1,R2,R3,R4,R5,R6);
+
+                            R1 = GET_FREE_BLOCK;
+                            call MEMORY_MANAGER;
+                            blockNum = R0;
+
+                            multipop(R0,R1,R2,R3,R4,R5,R6);
+
+                            if(blockNum == -1) then
+                                multipush(R0,R1,R2,R3,R4,R5,R6);
+
+                                R1 = RELEASE_INODE;
+                                R2 = [SYSTEM_STATUS_TABLE + 1];
+                                R3 = inodeIndex;
+                                call RESOURCE_MANAGER;
+
+                                multipop(R0,R1,R2,R3,R4,R5,R6);
+
+                                [returnVal] = -2;
+                                SP = userSP;
+                                [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+                                ireturn;
+                            else
+                                [INODE_TABLE + inodeIndex * 16 + 8 + (lseek / 512)] = blockNum;
+                            endif;
+                        endif;
+                        
+                        multipush(R0,R1,R2,R3,R4,R5,R6,R7);
+
+                        R1 = BUFFERED_WRITE;
+                        R2 = [INODE_TABLE + inodeIndex * 16 + 8 + lseek / 512];     // block num
+                        R4 = word;
+                        R3 = lseek % 512;
+                        call FILE_MANAGER;
+
+                        multipop(R0,R1,R2,R3,R4,R5,R6,R7);
+
+                        if(lseek == [INODE_TABLE + inodeIndex * 16 + 2]) then
+                            [INODE_TABLE + inodeIndex * 16 + 2] = [INODE_TABLE + inodeIndex * 16 + 2] + 1;
+                            [ROOT_FILE + inodeIndex * 8 + 1] = [ROOT_FILE + inodeIndex * 8 + 1] + 1;
+                        endif;
+
+                        [OPEN_FILE_TABLE + fileTableIndex * 4 + 2] = lseek + 1;
+
+                        multipush(R0,R2);
+
+                        R1 = RELEASE_INODE;
+                        R2 = [SYSTEM_STATUS_TABLE + 1];
+                        R3 = inodeIndex;
+                        call RESOURCE_MANAGER;
+
+                        multipop(R0,R2);
+
+                        [returnVal] = 0;
+                    endif;
+                endif;
+            endif;
+        endif;
+    endif;  
 endif;
 
 SP = userSP;

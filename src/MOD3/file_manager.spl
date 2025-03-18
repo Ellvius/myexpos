@@ -1,9 +1,9 @@
 alias functionNum R1;
 
-if(functionNum == BUFFERED_READ) then
+if(functionNum == BUFFERED_READ || functionNum == BUFFERED_WRITE) then
     alias blockNum R2;
     alias offset R3;
-    alias memAddress R4;
+    alias word R4;
     alias bufferNum R5;
 
     bufferNum = blockNum % MAX_BUFFER;
@@ -45,7 +45,12 @@ if(functionNum == BUFFERED_READ) then
         [BUFFER_TABLE + bufferNum * 4] = blockNum;
     endif;
 
-    [memAddress] = [BUFFER + bufferNum * 512 + offset];
+    if(functionNum == BUFFERED_READ) then
+        [word] = [BUFFER + bufferNum * 512 + offset];
+    else
+        [BUFFER + bufferNum * 512 + offset] = word;
+        [BUFFER_TABLE + bufferNum * 4 + 1] = 1;
+    endif;
 
     multipush(R1,R2,R3,R4,R5);
 

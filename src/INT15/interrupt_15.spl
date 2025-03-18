@@ -5,13 +5,47 @@ userSP = SP;
 SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1;
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = INT_SHUTDOWN;
 
-if([SYSTEM_STATUS_TABLE + 1] != 1 && [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 3] != 1) then
+if([SYSTEM_STATUS_TABLE + 1] != 1) then
     [[PTBR + 2*((userSP - 1) / 512)] * 512 + ((userSP - 1) % 512)] = -1;
 
     SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13];
     [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
     ireturn;
+else
+    if([PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 3] != 1) then
+        [[PTBR + 2*((userSP - 1) / 512)] * 512 + ((userSP - 1) % 512)] = -1;
+
+        SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13];
+        [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+        ireturn;
+    endif;
 endif;
+
+
+multipush(R0);
+
+R1 = KILL_ALL;
+R2 = [SYSTEM_STATUS_TABLE + 1];
+call PROCESS_MANAGER;
+
+multipop(R0);
+
+alias i R1;
+i = 0;
+while(i < MAX_BUFFER) do
+    if([BUFFER_TABLE + i * 4 + 1] == 1) then
+        multipush(R0,R1);
+
+        R2 = [SYSTEM_STATUS_TABLE + 1];
+        R3 = BUFFER_BASE + i;
+        R4 = [BUFFER_TABLE + i * 4];
+        R1 = DISK_STORE;
+        call DEVICE_MANAGER;
+
+        multipop(R0,R1);
+    endif;
+    i = i + 1;
+endwhile;
 
 // Update inodeUserTable
 R1 = DISK_STORE;
@@ -20,6 +54,7 @@ R3 = 59;
 R4 = 3;
 call DEVICE_MANAGER;
 
+// inodeUserTable - 2 block
 R1 = DISK_STORE;
 R2 = [SYSTEM_STATUS_TABLE + 1];
 R3 = 60;

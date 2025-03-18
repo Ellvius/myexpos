@@ -24,28 +24,10 @@ load --int=11 $HOME/myexpos/src/INT11/interrupt_11.xsm
 load --int=13 $HOME/myexpos/src/INT13/interrupt_13.xsm
 load --int=14 $HOME/myexpos/src/INT14/interrupt_14.xsm
 load --int=15 $HOME/myexpos/src/INT15/interrupt_15.xsm
-rm list.xsm
-load --exec $HOME/myexpos/src/EXECUTABLES/list.xsm
-rm even.xsm
-load --exec $HOME/myexpos/src/EXECUTABLES/even.xsm
 rm odd.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/odd.xsm
-rm pid.xsm
-load --exec $HOME/myexpos/src/EXECUTABLES/pid.xsm
-rm forkpid.xsm
-load --exec $HOME/myexpos/src/EXECUTABLES/forkpid.xsm
-rm sync.xsm
-load --exec $HOME/myexpos/src/EXECUTABLES/sync.xsm
-rm rw.xsm
-load --exec $HOME/myexpos/src/EXECUTABLES/rw.xsm
-rm parent.xsm
-load --exec $HOME/myexpos/src/EXECUTABLES/parent.xsm
-rm child.xsm
-load --exec $HOME/myexpos/src/EXECUTABLES/child.xsm
 rm msort1.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/msort1.xsm
-rm msort2.xsm
-load --exec $HOME/myexpos/src/EXECUTABLES/msort2.xsm
 rm create.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/create.xsm
 rm delete.xsm
@@ -54,6 +36,14 @@ rm readfile.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/readfile.xsm
 rm syncread.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/syncread.xsm
+rm writea.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/writea.xsm
+rm writeb.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/writeb.xsm
+rm writec.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/writec.xsm
+rm writed.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/writed.xsm
 rm sample.dat
 load --data $HOME/myexpos/src/DATA_FILES/sample.dat
 rm numbers.dat

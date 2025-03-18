@@ -25,7 +25,6 @@ if (functionNum == GET_PCB_ENTRY) then
 endif;
 
 
-
 if (functionNum == FREE_USER_AREA_PAGE) then
     alias PID R2;
     alias userAreaPage R3;
@@ -68,7 +67,6 @@ if (functionNum == FREE_USER_AREA_PAGE) then
 endif;
 
 
-
 if (functionNum == EXIT_PROCESS) then
     alias PID R2;
 
@@ -104,7 +102,6 @@ if (functionNum == EXIT_PROCESS) then
     return;
     
 endif;
-
 
 
 if (functionNum == FREE_PAGE_TABLE) then
@@ -162,4 +159,57 @@ if (functionNum == FREE_PAGE_TABLE) then
 
     return;
     
+endif;
+
+
+if(functionNum == KILL_ALL) then
+    alias PID R2;
+    alias i R3;
+
+    i = 0;
+    while(i < MAX_FILE_NUM) do 
+        if([INODE_TABLE + i * 16 + 1] != -1) then
+            multipush(R1,R2,R3);
+
+            R1 = ACQUIRE_INODE;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            R3 = i;
+            call RESOURCE_MANAGER;
+
+            multipop(R1,R2,R3);
+        endif;
+        i = i + 1;
+    endwhile;
+
+    i = 2;
+    while(i < MAX_PROC_NUM ) do 
+        if(i != [SYSTEM_STATUS_TABLE + 1] && [PROCESS_TABLE + i * 16 + 4] 
+        != TERMINATED) then
+            multipush(R1,R2,R3);
+
+            R1 = EXIT_PROCESS;
+            R2 = i;
+            call PROCESS_MANAGER;
+
+            multipop(R1,R2,R3);
+        endif;
+        i = i + 1;
+    endwhile;
+
+    i = 0;
+    while(i < MAX_FILE_NUM) do 
+        if([INODE_TABLE + i * 16 + 1] != -1) then
+            multipush(R1,R2,R3);
+
+            R1 = RELEASE_INODE;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            R3 = i;
+            call RESOURCE_MANAGER;
+
+            multipop(R1,R2,R3);
+        endif;
+        i = i + 1;
+    endwhile;
+
+    return;
 endif;
