@@ -15,18 +15,6 @@ int main(){
 
             cpid = exposcall("Fork");
             if(cpid == 0) then
-                if(command == "ls") then
-                    temp = exposcall("Exec", "ls.xsm");
-                endif;
-                if(command == "rm") then
-                    temp = exposcall("Exec", "rm.xsm");
-                endif;
-                if(command == "cat") then
-                    temp = exposcall("Exec", "cat.xsm");
-                endif;
-                if(command == "cp") then
-                    temp = exposcall("Exec", "cp.xsm");
-                endif;
                 temp = exposcall("Exec", command);
                 temp = exposcall("Write", -2, "BAD COMMAND");
                 temp = exposcall("Exit");
