@@ -73,7 +73,7 @@ else
                         [returnVal] = -2;
                     else
                         [physicalBufferAddress] = [ROOT_FILE + lseek];
-                        [OPEN_FILE_TABLE + fileTableIndex * 4 + 2] = lseek + 1;
+                        [OPEN_FILE_TABLE + fileTableIndex * 4 + 2] = [OPEN_FILE_TABLE + fileTableIndex * 4 + 2] + 1;
                         [returnVal] = 0;
                     endif;
                 else
