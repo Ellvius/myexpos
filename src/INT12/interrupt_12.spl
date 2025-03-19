@@ -1,0 +1,35 @@
+alias userSP R0;
+userSP = SP;
+
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = INT_LOGOUT;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1;
+
+if([SYSTEM_STATUS_TABLE + 1] != SHELL_PROCESS) then
+    [[PTBR + 2*((userSP - 1) / 512)] * 512 + ((userSP - 1) % 512)] = -1;
+else
+    multipush(R0);
+
+    R1 = KILL_ALL;
+    R2 = SHELL_PROCESS;
+    call PROCESS_MANAGER;
+
+    multipop(R0);
+
+    [PROCESS_TABLE + SHELL_PROCESS * 16 + 4] = TERMINATED;
+    [[PTBR + 16] * 512] = [[PTBR + 8] * 512 + 1];
+    [PROCESS_TABLE + SHELL_PROCESS * 16 + 13] = 4096;
+
+    [PROCESS_TABLE + LOGIN_PROCESS * 16 + 4] = READY;
+    [PROCESS_TABLE + LOGIN_PROCESS * 16 + 5] = -1;
+
+    [SYSTEM_STATUS_TABLE] = KERNEL;
+
+    multipush(R0);
+    call SCHEDULER;
+    multipop(R0);
+endif;
+
+SP = userSP;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+ireturn;

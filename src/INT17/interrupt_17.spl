@@ -1,0 +1,56 @@
+alias userSP R0;
+userSP = SP;
+
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = INT_LOGIN;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1;
+
+
+alias returnVal R1;
+returnVal = [PTBR + 2*((userSP - 1) / 512)] * 512 + ((userSP - 1) % 512);
+
+if([SYSTEM_STATUS_TABLE + 1] != LOGIN_PROCESS) then
+    [returnVal] = -2;
+else
+    alias username R2;
+    alias userId R3;
+    username = [[PTBR + 2 * ((userSP - 4) / 512)] * 512 + (userSP - 4) % 512];
+    userId = 1;
+
+    while(userId < MAX_USER_NUM) do
+        if([USER_TABLE + userId * 2] == username) then
+            break;
+        endif;
+        userId = userId + 1;
+    endwhile;
+
+    if(userId == MAX_USER_NUM) then
+        [returnVal] = -1;
+    else
+        alias password R4;
+        password = [[PTBR + 2 * ((userSP - 3) / 512)] * 512 + (userSP - 3) % 512];
+        encrypt password;
+
+        if([USER_TABLE + userId * 2 + 1] != password) then
+            [returnVal] = -1;
+        else
+            [PROCESS_TABLE + SHELL_PROCESS * 16 + 4] = CREATED;
+            [PROCESS_TABLE + SHELL_PROCESS * 16 + 3] = userId;
+
+            [PROCESS_TABLE + LOGIN_PROCESS * 16 + 4] = WAIT_PROCESS;
+            [PROCESS_TABLE + LOGIN_PROCESS * 16 + 5] = SHELL_PROCESS;
+
+            [SYSTEM_STATUS_TABLE] = userId;
+
+            multipush(R0,R1);
+            call SCHEDULER;
+            multipop(R0,R1);
+
+            [returnVal] = 0;
+        endif;
+    endif;
+endif;
+
+SP = userSP;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+ireturn;

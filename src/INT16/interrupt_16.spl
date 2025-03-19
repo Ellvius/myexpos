@@ -1,0 +1,177 @@
+alias userSP R0;
+userSP = SP;
+
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1;
+
+alias systemCallNumber R1;
+alias returnVal R2;
+systemCallNumber = [[PTBR + 2 * ((userSP - 5) / 512)] * 512 + (userSP - 5) % 512];
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = systemCallNumber;
+
+returnVal = [PTBR + 2*((userSP - 1) / 512)] * 512 + ((userSP - 1) % 512);
+
+if(systemCallNumber == INT_NEWUSR) then
+    if([SYSTEM_STATUS_TABLE] != ROOT || [SYSTEM_STATUS_TABLE + 1] != SHELL_PROCESS) then
+        [returnVal] = -2;
+    else
+        alias username R3;
+        alias userID R4;
+        username = [[PTBR + 2 * ((userSP - 4) / 512)] * 512 + (userSP - 4) % 512];
+
+        userID = 1;
+        while(userID < MAX_USER_NUM) do
+            if([USER_TABLE + userID * 2] == username) then
+                break;
+            endif;
+            userID = userID + 1;
+        endwhile;
+
+        if(userID != MAX_USER_NUM) then
+            [returnVal] = -1;
+        else
+            userID = 1;
+            while(userID < MAX_USER_NUM) do
+                if([USER_TABLE + userID * 2] == -1) then
+                    break;
+                endif;
+                userID = userID + 1;
+            endwhile;
+
+            if(userID == MAX_USER_NUM) then
+                [returnVal] = -3;
+            else
+                alias password R5;
+                password = [[PTBR + 2 * ((userSP - 3) / 512)] * 512 + (userSP - 3) % 512];
+                encrypt password;
+
+                [USER_TABLE + userID * 2] = username;
+                [USER_TABLE + userID * 2 + 1] = password;
+
+                [returnVal] = 0;
+            endif;
+        endif;
+    endif;
+endif;
+
+
+if(systemCallNumber == INT_REMUSR) then
+    if([SYSTEM_STATUS_TABLE] != ROOT || [SYSTEM_STATUS_TABLE + 1] != SHELL_PROCESS) then
+        [returnVal] = -2;
+    else
+        alias username R3;
+        username = [[PTBR + 2 * ((userSP - 4) / 512)] * 512 + (userSP - 4) % 512];
+
+        if(username == "root" || username == "kernel") then
+            [returnVal] = -2;
+        else 
+            alias userID R4;
+            userID = 1;
+            while(userID < MAX_USER_NUM) do
+                if([USER_TABLE + userID * 2] == username) then
+                    break;
+                endif;
+                userID = userID + 1;
+            endwhile;
+
+            if(userID == MAX_USER_NUM) then
+                [returnVal] = -1;
+            else
+                alias rootEntry R5;
+                rootEntry = 0;
+
+                while(rootEntry < MAX_FILE_NUM) do
+                    if([ROOT_FILE + rootEntry * 8 + 3] == username) then
+                        break;
+                    endif;
+                    rootEntry = rootEntry + 1;
+                endwhile;
+
+                if(rootEntry != MAX_FILE_NUM) then
+                    [returnVal] = -3;
+                else
+                    [USER_TABLE + userID * 2] = -1;
+                    [USER_TABLE + userID * 2 + 1] = -1;
+
+                    [returnVal] = 0;
+                endif;
+            endif;
+        endif;
+    endif;
+endif;
+
+
+if(systemCallNumber == INT_SETPWD) then
+    if([SYSTEM_STATUS_TABLE + 1] != SHELL_PROCESS) then
+        [returnVal] = -1;
+    else
+        alias username R3;
+        alias userID R4;
+        username = [[PTBR + 2 * ((userSP - 4) / 512)] * 512 + (userSP - 4) % 512];
+        userID = 1;
+
+        while(userID < MAX_USER_NUM) do
+            if([USER_TABLE + userID * 2] == username) then
+                break;
+            endif;
+            userID = userID + 1;
+        endwhile;
+
+        if(userID == MAX_USER_NUM) then
+            [returnVal] = -2;
+        else
+            if([PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 3] != userID && [SYSTEM_STATUS_TABLE] != ROOT) then
+                [returnVal] = -1;
+            else
+                alias password R5;
+                password = [[PTBR + 2 * ((userSP - 3) / 512)] * 512 + (userSP - 3) % 512];
+                encrypt password;
+
+                [USER_TABLE + userID * 2 + 1] = password;
+                [returnVal] = 0;
+            endif;
+        endif;
+    endif;
+endif;
+
+
+if(systemCallNumber == INT_GETUNAME) then
+    alias userID R3;
+    userID = [[PTBR + 2 * ((userSP - 4) / 512)] * 512 + (userSP - 4) % 512];
+
+    if(userID < 0 || userID >= MAX_USER_NUM) then
+        [returnVal] = -1;
+    else
+        if([USER_TABLE + userID * 2] == -1) then
+            [returnVal] = -1;
+        else
+            [returnVal] = [USER_TABLE + userID * 2];
+        endif;
+    endif;
+endif;
+
+
+if(systemCallNumber == INT_GETUID) then
+    alias username R3;
+    alias userID R4;
+    username = [[PTBR + 2 * ((userSP - 4) / 512)] * 512 + (userSP - 4) % 512];
+    userID = 0;
+
+    while(userID < MAX_USER_NUM) do
+        if([USER_TABLE + userID * 2] == username) then
+            break;
+        endif;
+        userID = userID + 1;
+    endwhile;
+
+    if(userID == MAX_USER_NUM) then
+        [returnVal] = -1;
+    else
+        [returnVal] = userID;
+    endif;
+endif;
+
+
+SP = userSP;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+ireturn;

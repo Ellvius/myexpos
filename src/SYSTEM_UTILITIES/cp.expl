@@ -1,6 +1,6 @@
 int main(){
     decl
-        int temp, fd1, fd2, p1, p2;
+        int temp, fd1, fd2,i,fr, permission;
         str word, file1, file2;
     enddecl
 
@@ -19,41 +19,50 @@ int main(){
             write("ResLimit");
         endif;
 
+
         if(fd1 >= 0) then
             write("File2: ");
             read(file2);
+            permission = 0;
+            fr = exposcall("Open","root");
 
-            fd2 = exposcall("Open",file2);
-            if(fd2 == -1) then
-                write("NotFound");
-            endif;
-            if(fd2 == -2) then
-                write("FileLimit");
-            endif;
-            if(fd2 == -3) then
-                write("ResLimit");
-            endif;
-
-            if(fd2 >= 0) then
-                temp = exposcall("Close", fd2);
-
-                temp = exposcall("Delete", file2);
-                temp = exposcall("Create", file2, 1);
-
-                fd2 = exposcall("Open", file2);
-                
-                temp = exposcall("Read", fd1, word);
-                while(temp == 0) do
-                    temp = exposcall("Write", fd2, word);
-                    temp = exposcall("Read", fd1, word);
-                endwhile;
-
-                if(temp == -1) then
-                    write("NoSpace");
+            i = 0;
+            while(i < 60) do
+                temp = exposcall("Read", fr, word);
+                if(word == file2) then
+                    temp = exposcall("Seek",fr,3);
+                    temp = exposcall("Read", fr, permission);
+                    break;
                 endif;
+                temp = exposcall("Seek", fr, 7);
+                i = i + 1;
+            endwhile;
 
-                temp = exposcall("Close", fd2);
+            temp = exposcall("Close", fr);
+
+            temp = exposcall("Delete", file2);
+            if(temp == -1 OR temp == -2) then
+                temp = exposcall("Write", -2, "Denied");
+            else
+                temp = exposcall("Create", file2, permission);
+                fd2 = exposcall("Open",file2);
+
+                if(fd2 >= 0) then
+                    
+                    temp = exposcall("Read", fd1, word);
+                    while(temp == 0) do
+                        temp = exposcall("Write", fd2, word);
+                        temp = exposcall("Read", fd1, word);
+                    endwhile;
+
+                    if(temp == -1) then
+                        write("NoSpace");
+                    endif;
+
+                    temp = exposcall("Close", fd2);
+                endif;
             endif;
+
             temp = exposcall("Close", fd1);
         endif;
         return 0;

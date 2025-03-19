@@ -1,0 +1,39 @@
+int main(){
+    decl
+        int temp, fd, count, i;
+        int filename, word;
+    enddecl
+
+    begin
+        write("Filename:");
+        read(filename);
+        write("WordCount:");
+        read(count);
+
+        fd = exposcall("Open",filename);
+        if(fd == -1) then
+            write("NotFound");
+        endif;
+        if(fd == -2) then
+            write("FileLimit");
+        endif;
+        if(fd == -3) then
+            write("ResLimit");
+        endif;
+
+        if(fd >= 0) then
+            i = 0;
+            while(i < count) do
+                temp = exposcall("Read", -1, word);
+                temp = exposcall("Write", fd, word);
+                i = i + 1;
+            endwhile;
+            if(temp == -1) then
+                write("NoSpace");
+            endif;
+
+            temp = exposcall("Close", fd);
+        endif;
+        return 0;
+    end
+}

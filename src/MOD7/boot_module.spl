@@ -10,7 +10,11 @@ loadi(62,5);
 
 // Load init 
 loadi(65,7);
-loadi(66,8);
+//loadi(66,8);
+
+// Load shell 
+loadi(67,9);
+loadi(68,10);
 
 // Load library
 loadi(63,13);
@@ -64,6 +68,10 @@ loadi(23,36);
 loadi(24,37);
 loadi(25,38);
 
+// Load INT 12 module
+loadi(26,39);
+loadi(27,40);
+
 // Load INT 13 module
 loadi(28,41);
 loadi(29,42);
@@ -75,6 +83,14 @@ loadi(31,44);
 // Load INT 15 module
 loadi(32,45);
 loadi(33,46);
+
+// Load INT 16 module
+loadi(34,47);
+loadi(35,48);
+
+// Load INT 17 module
+loadi(36,49);
+loadi(37,50);
 
 // Load Resource Manager MODULE_0
 loadi(40,53);
@@ -101,22 +117,140 @@ loadi(50,63);
 loadi(51,64);
 
 
+// For init process
+
+PTBR = PAGE_TABLE_BASE + 20;
+PTLR = 10;
+
+// Library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+// Heap
+[PTBR+4] = -1;
+[PTBR+5] = "0000";
+[PTBR+6] = -1;
+[PTBR+7] = "0000";
+
+// Code
+[PTBR+8] = 65;
+[PTBR+9] = "0100";
+[PTBR+10] = -1;
+[PTBR+11] = "0000";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+// Stack
+[PTBR+16] = 66;
+[PTBR+17] = "0110";
+[PTBR+18] = -1;
+[PTBR+19] = "0000";
+
+// Process table for init process
+[PROCESS_TABLE + 16 + 1] = 1;                           // PID
+[PROCESS_TABLE + 16 + 3] = 1;                           // USERID
+[PROCESS_TABLE + 16 + 4] = CREATED;                     // Status
+[PROCESS_TABLE + 16 + 11] = 77;                         // User area page
+[PROCESS_TABLE + 16 + 12] = 0;                          // KPTR
+[PROCESS_TABLE + 16 + 13] = 8 * 512;                    // UPTR
+[PROCESS_TABLE + 16 + 14] = PAGE_TABLE_BASE + 20;       // PTBR
+[PROCESS_TABLE + 16 + 15] = 10;                         // PTLR
+
+[66*512] = [65*512 + 1];
+
+alias i R0;
+// Initialize the per process table for init 
+i = 0;
+while(i < 16) do
+    [[PROCESS_TABLE + 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + i] = -1;
+    i = i + 1;
+endwhile;
+
+
+// For shell process
+
+PTBR = PAGE_TABLE_BASE + 40;
+PTLR = 10;
+
+// Library
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+// Heap
+[PTBR+4] = -1;
+[PTBR+5] = "0000";
+[PTBR+6] = -1;
+[PTBR+7] = "0000";
+
+// Code
+[PTBR+8] = 67;
+[PTBR+9] = "0100";
+[PTBR+10] = 68;
+[PTBR+11] = "0100";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+// Stack
+[PTBR+16] = 78;
+[PTBR+17] = "0110";
+[PTBR+18] = 79;
+[PTBR+19] = "0110";
+
+alias PROCESS R1;
+PROCESS = PROCESS_TABLE + SHELL_PROCESS * 16;
+
+// Process table for shell process
+[PROCESS + 1] = SHELL_PROCESS;               // PID
+[PROCESS + 2] = LOGIN_PROCESS;               // PPID
+[PROCESS + 3] = 1;                           // USERID
+[PROCESS + 4] = TERMINATED;                  // Status
+[PROCESS + 11] = 80;                         // User area page
+[PROCESS + 12] = 0;                          // KPTR
+[PROCESS + 13] = 8 * 512;                    // UPTR
+[PROCESS + 14] = PAGE_TABLE_BASE + 40;       // PTBR
+[PROCESS + 15] = 10;                         // PTLR
+
+[78*512] = [67*512 + 1];
+
+// Set up the Disk Map table for shell
+alias diskMapTable R1;
+diskMapTable = DISK_MAP_TABLE + SHELL_PROCESS * 10;
+
+[diskMapTable + 0] = -1;            // Unused
+[diskMapTable + 1] = -1;            // Unused
+[diskMapTable + 2] = -1;            // Heap 1
+[diskMapTable + 3] = -1;            // Heap 2
+[diskMapTable + 4] =  9;            // Code 1
+[diskMapTable + 5] = 10;            // Code 2
+[diskMapTable + 6] = -1;            // Code 3
+[diskMapTable + 7] = -1;            // Code 4
+[diskMapTable + 8] = -1;            // Stack 1
+[diskMapTable + 9] = -1;            // Stack 2
+
+
 // Terminal Status Table
 [TERMINAL_STATUS_TABLE] = 0;
 
 // Disk Status Table
 [DISK_STATUS_TABLE] = 0;
 
-[SYSTEM_STATUS_TABLE + 2] = 45;     // Mem free count
+[SYSTEM_STATUS_TABLE + 2] = 47;     // Mem free count
 [SYSTEM_STATUS_TABLE + 3] = 0;      // Wait mem count
 
-alias i R0;
 
 // Initialize memory free list
 i = 0;
 
 while(i < 128) do
-    if (i < 83) then
+    if (i < 81) then
         [MEMORY_FREE_LIST + i] = 1;
     else
         [MEMORY_FREE_LIST + i] = 0;
@@ -174,73 +308,5 @@ while(i < MAX_PROC_NUM) do
     i= i + 1;
 endwhile;
 
-
-// For init process
-
-PTBR = PAGE_TABLE_BASE + 20;
-PTLR = 10;
-
-// Library
-[PTBR+0] = 63;
-[PTBR+1] = "0100";
-[PTBR+2] = 64;
-[PTBR+3] = "0100";
-
-// Heap
-[PTBR+4] = 78;
-[PTBR+5] = "0110";
-[PTBR+6] = 79;
-[PTBR+7] = "0110";
-
-// Code
-[PTBR+8] = 65;
-[PTBR+9] = "0100";
-[PTBR+10] = 66;
-[PTBR+11] = "0100";
-[PTBR+12] = -1;
-[PTBR+13] = "0000";
-[PTBR+14] = -1;
-[PTBR+15] = "0000";
-
-// Stack
-[PTBR+16] = 76;
-[PTBR+17] = "0110";
-[PTBR+18] = 77;
-[PTBR+19] = "0110";
-
-// Process table for init process
-[PROCESS_TABLE + 16 + 1] = 1;                           // PID
-[PROCESS_TABLE + 16 + 3] = 1;                           // USERID
-[PROCESS_TABLE + 16 + 4] = CREATED;                     // Status
-[PROCESS_TABLE + 16 + 11] = 80;                         // User area page
-[PROCESS_TABLE + 16 + 12] = 0;                          // KPTR
-[PROCESS_TABLE + 16 + 13] = 8 * 512;                    // UPTR
-[PROCESS_TABLE + 16 + 14] = PAGE_TABLE_BASE + 20;       // PTBR
-[PROCESS_TABLE + 16 + 15] = 10;                         // PTLR
-
-[76*512] = [65*512 + 1];
-
-// Initialize the per process table for init 
-i = 0;
-while(i < 16) do
-    [[PROCESS_TABLE + 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + i] = -1;
-    i = i + 1;
-endwhile;
-
-
-// Set up the Disk Map table for init
-alias diskMapTable R1;
-diskMapTable = DISK_MAP_TABLE + 10;
-
-[diskMapTable + 0] = -1;            // Unused
-[diskMapTable + 1] = -1;            // Unused
-[diskMapTable + 2] = -1;            // Heap 1
-[diskMapTable + 3] = -1;            // Heap 2
-[diskMapTable + 4] =  7;            // Code 1
-[diskMapTable + 5] =  8;            // Code 2
-[diskMapTable + 6] = -1;            // Code 3
-[diskMapTable + 7] = -1;            // Code 4
-[diskMapTable + 8] = -1;            // Stack 1
-[diskMapTable + 9] = -1;            // Stack 2
 
 return;

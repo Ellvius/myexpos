@@ -1,29 +1,28 @@
 int main(){
     decl
-        str command;
-        int temp, cpid;
+        str username, password;
+        int temp;
     enddecl
 
     begin
+        temp = exposcall("Write",-2," ");
         while(1 == 1) do 
-            temp = exposcall("Write", -2, "Enter:");
-            temp = exposcall("Read", -1, command);
+            temp = exposcall("Write",-2,"Username:");
+            temp = exposcall("Read",-1,username);
+            temp = exposcall("Write",-2,"Password:");
+            temp = exposcall("Read",-1,password);
 
-            if(command == "exit") then
-                temp = exposcall("Shutdown");
-            endif;
+            temp = exposcall("Write",-2," ");
+            temp = exposcall("Login",username,password);
 
-            cpid = exposcall("Fork");
-            if(cpid == 0) then
-                temp = exposcall("Exec", command);
-                temp = exposcall("Write", -2, "BAD COMMAND");
-                temp = exposcall("Exit");
+            if(temp == -1) then
+                temp = exposcall("Write",-2,"Invalid");
             else
-                temp = exposcall("Wait", cpid);
-                temp = exposcall("Write", -2, " ");
+                if(temp == -2) then
+                    temp = exposcall("Write",-2,"Denied");
+                endif;
             endif;
         endwhile;
-
         return 0;
     end
 }

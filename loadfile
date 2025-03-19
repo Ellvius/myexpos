@@ -1,6 +1,7 @@
 load --os $HOME/myexpos/src/OS_STARTUP/os_startup.xsm
 load --idle $HOME/myexpos/src/IDLE/idle_process.xsm
 load --init $HOME/myexpos/src/INIT/init_process.xsm
+load --shell $HOME/myexpos/src/SHELL/shell.xsm
 load --module 0 $HOME/myexpos/src/MOD0/resource_manager.xsm
 load --module 1 $HOME/myexpos/src/MOD1/process_manager.xsm
 load --module 2 $HOME/myexpos/src/MOD2/memory_manager.xsm
@@ -21,9 +22,12 @@ load --int=8 $HOME/myexpos/src/INT8/interrupt_8.xsm
 load --int=9 $HOME/myexpos/src/INT9/interrupt_9.xsm
 load --int=10 $HOME/myexpos/src/INT10/interrupt_10.xsm
 load --int=11 $HOME/myexpos/src/INT11/interrupt_11.xsm
+load --int=12 $HOME/myexpos/src/INT12/interrupt_12.xsm
 load --int=13 $HOME/myexpos/src/INT13/interrupt_13.xsm
 load --int=14 $HOME/myexpos/src/INT14/interrupt_14.xsm
 load --int=15 $HOME/myexpos/src/INT15/interrupt_15.xsm
+load --int=16 $HOME/myexpos/src/INT16/interrupt_16.xsm
+load --int=17 $HOME/myexpos/src/INT17/interrupt_17.xsm
 rm rm.xsm
 load --exec $HOME/myexpos/src/SYSTEM_UTILITIES/rm.xsm
 rm cat.xsm
@@ -32,6 +36,10 @@ rm ls.xsm
 load --exec $HOME/myexpos/src/SYSTEM_UTILITIES/ls.xsm
 rm cp.xsm
 load --exec $HOME/myexpos/src/SYSTEM_UTILITIES/cp.xsm
+rm lu.xsm
+load --exec $HOME/myexpos/src/SYSTEM_UTILITIES/lu.xsm
+rm ru.xsm
+load --exec $HOME/myexpos/src/SYSTEM_UTILITIES/ru.xsm
 rm odd.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/odd.xsm
 rm msort1.xsm
@@ -44,6 +52,8 @@ rm readfile.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/readfile.xsm
 rm syncread.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/syncread.xsm
+rm write.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/write.xsm
 rm writea.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/writea.xsm
 rm writeb.xsm
