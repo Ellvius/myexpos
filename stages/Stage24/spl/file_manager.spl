@@ -23,7 +23,7 @@ if(functionNum == BUFFERED_READ) then
 
             R1 = DISK_STORE;
             R2 = [SYSTEM_STATUS_TABLE + 1];
-            R3 = BUFFER / 512 + bufferNum;
+            R3 = BUFFER_BASE + bufferNum;
             R4 = [BUFFER_TABLE + bufferNum * 4];
             call DEVICE_MANAGER;
 
@@ -37,7 +37,7 @@ if(functionNum == BUFFERED_READ) then
         R1 = DISK_LOAD;
         R4 = blockNum;
         R2 = [SYSTEM_STATUS_TABLE + 1];
-        R3 = BUFFER / 512 + bufferNum;
+        R3 = BUFFER_BASE + bufferNum;
         call DEVICE_MANAGER;
 
         multipop(R1,R2,R3,R4,R5);

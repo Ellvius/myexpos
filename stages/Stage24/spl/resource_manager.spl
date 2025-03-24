@@ -7,7 +7,7 @@ if(functionNum == ACQUIRE_BUFFER) then
 
     while([BUFFER_TABLE + bufferNum * 4 + 2] != -1) do
         [PROCESS_TABLE + currentPID * 16 + 4] = WAIT_BUFFER;
-        [PROCESS_TABLE + currentPID * 16 + 4] = bufferNum;
+        [PROCESS_TABLE + currentPID * 16 + 5] = bufferNum;
 
         multipush(R1,R2,R3);
         call SCHEDULER;

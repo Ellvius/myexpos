@@ -26,7 +26,7 @@ int store(str file, int start)
     //Close the file
     x=exposcall("Close", fp);
 
-    //write("Stored");
+    //write(file);
     return 0;
   end
 }
@@ -91,7 +91,7 @@ int merge(str out, str in1, str in2)
     x=exposcall("Delete", in1);
     x=exposcall("Delete", in2);
 
-    write("Merged");
+    write(out);
     return 0;
   end
 }
