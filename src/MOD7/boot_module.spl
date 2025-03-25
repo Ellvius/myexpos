@@ -116,6 +116,10 @@ loadi(49,62);
 loadi(50,63);
 loadi(51,64);
 
+// Load Pager MODULE_6
+loadi(52,65);
+loadi(53,66);
+
 
 // For init process
 
@@ -150,15 +154,18 @@ PTLR = 10;
 [PTBR+18] = -1;
 [PTBR+19] = "0000";
 
+alias PROCESS R1;
+PROCESS = PROCESS_TABLE + INIT_PROCESS * 16;
+
 // Process table for init process
-[PROCESS_TABLE + 16 + 1] = 1;                           // PID
-[PROCESS_TABLE + 16 + 3] = 1;                           // USERID
-[PROCESS_TABLE + 16 + 4] = CREATED;                     // Status
-[PROCESS_TABLE + 16 + 11] = 77;                         // User area page
-[PROCESS_TABLE + 16 + 12] = 0;                          // KPTR
-[PROCESS_TABLE + 16 + 13] = 8 * 512;                    // UPTR
-[PROCESS_TABLE + 16 + 14] = PAGE_TABLE_BASE + 20;       // PTBR
-[PROCESS_TABLE + 16 + 15] = 10;                         // PTLR
+[PROCESS+ 1] = 1;                           // PID
+[PROCESS+ 3] = 1;                           // USERID
+[PROCESS+ 4] = CREATED;                     // Status
+[PROCESS+ 11] = 77;                         // User area page
+[PROCESS+ 12] = 0;                          // KPTR
+[PROCESS+ 13] = 8 * 512;                    // UPTR
+[PROCESS+ 14] = PAGE_TABLE_BASE + 20;       // PTBR
+[PROCESS+ 15] = 10;                         // PTLR
 
 [66*512] = [65*512 + 1];
 
@@ -166,7 +173,7 @@ alias i R0;
 // Initialize the per process table for init 
 i = 0;
 while(i < 16) do
-    [[PROCESS_TABLE + 16 + 11] * 512 + RESOURCE_TABLE_OFFSET + i] = -1;
+    [[PROCESS+ 11] * 512 + RESOURCE_TABLE_OFFSET + i] = -1;
     i = i + 1;
 endwhile;
 
@@ -204,7 +211,6 @@ PTLR = 10;
 [PTBR+18] = 79;
 [PTBR+19] = "0110";
 
-alias PROCESS R1;
 PROCESS = PROCESS_TABLE + SHELL_PROCESS * 16;
 
 // Process table for shell process
@@ -224,16 +230,14 @@ PROCESS = PROCESS_TABLE + SHELL_PROCESS * 16;
 alias diskMapTable R1;
 diskMapTable = DISK_MAP_TABLE + SHELL_PROCESS * 10;
 
-[diskMapTable + 0] = -1;            // Unused
-[diskMapTable + 1] = -1;            // Unused
-[diskMapTable + 2] = -1;            // Heap 1
-[diskMapTable + 3] = -1;            // Heap 2
-[diskMapTable + 4] =  9;            // Code 1
-[diskMapTable + 5] = 10;            // Code 2
-[diskMapTable + 6] = -1;            // Code 3
-[diskMapTable + 7] = -1;            // Code 4
-[diskMapTable + 8] = -1;            // Stack 1
-[diskMapTable + 9] = -1;            // Stack 2
+i = 0;
+while(i < 10) do
+    [diskMapTable + i] = -1;
+    i = i + 1;
+endwhile;
+
+[diskMapTable + 4] = 9;
+[diskMapTable + 5] = 10;
 
 
 // Terminal Status Table
@@ -242,8 +246,10 @@ diskMapTable = DISK_MAP_TABLE + SHELL_PROCESS * 10;
 // Disk Status Table
 [DISK_STATUS_TABLE] = 0;
 
-[SYSTEM_STATUS_TABLE + 2] = 47;     // Mem free count
+[SYSTEM_STATUS_TABLE + 2] = 45;     // Mem free count
 [SYSTEM_STATUS_TABLE + 3] = 0;      // Wait mem count
+[SYSTEM_STATUS_TABLE + 4] = 0;      // Swapped count
+[SYSTEM_STATUS_TABLE + 5] = 0;      // Paging Status
 
 
 // Initialize memory free list
@@ -301,10 +307,13 @@ endwhile;
 
 
 // Set status of other process to TERMINATED
-i = 2;
+i = 0;
 
 while(i < MAX_PROC_NUM) do
-    [PROCESS_TABLE +  i*16 + 4] = TERMINATED;
+    if(i > 1) then
+        [PROCESS_TABLE +  i*16 + 4] = TERMINATED;
+    endif;
+    [PROCESS_TABLE + i * 16] = 0;
     i= i + 1;
 endwhile;
 

@@ -1,0 +1,180 @@
+alias functionNum R1;
+alias currentPID R2;
+
+if(functionNum == SWAP_OUT) then
+    alias pid R3;
+    pid = SHELL_PROCESS + 1;
+    alias semid R4;
+    alias highestTick R5;
+    alias highTickPid R6;
+    semid = -1;
+    highestTick = 0;
+    highTickPid = -1;
+
+    while(pid < SWAPPER_DAEMON) do
+        alias processTable R7;
+        processTable = PROCESS_TABLE + pid * 16;
+        if([processTable + 6] == 0 && [processTable + 4] == WAIT_PROCESS) then
+            break;
+        endif;
+
+        if([processTable + 6] == 0 && [processTable + 4] == WAIT_SEMAPHORE) then
+            semid = pid;
+        endif;
+
+        if([processTable + 6] == 0 && [processTable + 4] != RUNNING && [processTable + 4] != TERMINATED && [processTable + 4] != ALLOCATED) then
+            if([processTable] > highestTick) then
+                highestTick = [processTable];
+                highTickPid = pid;
+            endif;
+        endif;
+        pid = pid + 1;
+    endwhile;
+
+    if(pid == SWAPPER_DAEMON) then
+        if(semid != -1) then
+            pid = semid;
+        else
+            if(highTickPid != -1) then
+                pid = highTickPid;
+            else
+                [SYSTEM_STATUS_TABLE + 5] = 0;
+                return;
+            endif;
+        endif;
+    endif;
+
+    [PROCESS_TABLE + pid * 16] = 0;
+
+    alias i R4;
+    alias pageTable R5;
+    pageTable = PAGE_TABLE_BASE + pid * 20;
+
+    i = 4;
+    while(i < 20) do
+        if((i < 8 && [pageTable + i] != -1 && [MEMORY_FREE_LIST + [pageTable + i]] == 1 )|| (i >= 16 && [pageTable + i]!= -1)) then
+            alias blockNum R6;
+            multipush(R1,R2,R3,R4,R5);
+
+            R1 = GET_SWAP_BLOCK;
+            call MEMORY_MANAGER;
+            blockNum = R0;
+
+            multipop(R1,R2,R3,R4,R5);
+
+            [DISK_MAP_TABLE + pid * 10 + (i/2)] = blockNum;
+
+            multipush(R1,R2,R3,R4,R5,R6);
+
+            R1 = DISK_STORE;
+            R2 = currentPID;
+            R3 = [pageTable + i];
+            R4 = blockNum;
+            call DEVICE_MANAGER;
+
+            multipop(R1,R2,R3,R4,R5,R6);
+        endif;
+
+        if([pageTable + i] != -1) then
+            multipush(R1,R2,R3,R4,R5);
+
+            R1 = RELEASE_PAGE;
+            R2 = [pageTable + i];
+            call MEMORY_MANAGER;
+
+            multipop(R1,R2,R3,R4,R5);
+
+            [pageTable + i] = -1;
+            [pageTable + i + 1] = "0000";
+        endif;
+
+        i = i + 2;
+    endwhile;
+
+    [PROCESS_TABLE + pid * 16 + 6] = 1;
+
+    [SYSTEM_STATUS_TABLE + 4] = [SYSTEM_STATUS_TABLE + 4] + 1;
+    [SYSTEM_STATUS_TABLE + 5] = 0;
+
+    return;
+endif;
+
+
+if(functionNum == SWAP_IN) then
+    alias SwapPid R3;
+    alias highestTick R4;
+    alias pid R5;
+
+    pid = SHELL_PROCESS + 1;
+    SwapPid = -1;
+    highestTick = 0;
+
+    while(pid < SWAPPER_DAEMON) do
+        alias processTable R6;
+        processTable = PROCESS_TABLE + pid * 16;
+        if([processTable + 6] == 1 && [processTable + 4] == READY) then
+            if([processTable] > highestTick) then
+                highestTick = [processTable];
+                SwapPid = pid;
+            endif;
+        endif;
+        pid = pid + 1;
+    endwhile;
+
+    if(SwapPid == -1) then
+        [SYSTEM_STATUS_TABLE + 5] = 0;
+        return;
+    endif;
+
+    [PROCESS_TABLE + SwapPid * 16] = 0;
+
+    alias i R4;
+    alias pageTable R5;
+    pageTable = PAGE_TABLE_BASE + SwapPid * 20;
+    i = 4;
+
+    while(i < 20) do
+        if((i >= 16) || (i < 8 && [DISK_MAP_TABLE + SwapPid * 10 + (i/2)] != -1)) then
+            alias pageNum R6;
+            multipush(R1,R2,R3,R4,R5);
+
+            R1 = GET_FREE_PAGE;
+            call MEMORY_MANAGER;
+            pageNum = R0;
+
+            multipop(R1,R2,R3,R4,R5);
+
+            multipush(R1,R2,R3,R4,R5,R6);
+
+            R1 = DISK_LOAD;
+            R2 = currentPID;
+            R3 = pageNum;
+            R4 = [DISK_MAP_TABLE + SwapPid * 10 + (i/2)];
+            call DEVICE_MANAGER;
+
+            multipop(R1,R2,R3,R4,R5,R6);
+
+            [pageTable + i] = pageNum;
+            [pageTable + i + 1] = "0110";
+
+            multipush(R1,R2,R3,R4,R5,R6);
+
+            R1 = RELEASE_BLOCK;
+            R2 = [DISK_MAP_TABLE + SwapPid * 10 + (i/2)];
+            call MEMORY_MANAGER;
+
+            multipop(R1,R2,R3,R4,R5,R6);
+            
+            [DISK_MAP_TABLE + SwapPid * 10 + (i/2)] = -1;
+        endif;
+
+        i = i + 2;
+    endwhile;
+    
+    [PROCESS_TABLE + SwapPid * 16 + 6] = 0;
+
+    [SYSTEM_STATUS_TABLE + 4] = [SYSTEM_STATUS_TABLE + 4] - 1;
+    [SYSTEM_STATUS_TABLE + 5] = 0;
+
+    return;
+endif;

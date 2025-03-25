@@ -11,24 +11,38 @@ process_table_entry = PROCESS_TABLE + (currentPID * 16);
 [process_table_entry + 15] = PTLR;
 
 alias newPID R2;
-alias iPID R3;
-alias iprocess_status R4;
-iPID = currentPID + 1;
 
-while ((iPID % 16) != currentPID) do
-    iprocess_status = [PROCESS_TABLE + ((iPID % 16) * 16) + 4];
-    if ((iprocess_status == READY) || (iprocess_status == CREATED)) then
-        newPID = iPID % 16;
-        break;
+if([SYSTEM_STATUS_TABLE + 5] != 0) then
+    if([PROCESS_TABLE + SWAPPER_DAEMON * 16 + 4] == WAIT_DISK) then
+        newPID = IDLE_PROCESS;
+    else
+        newPID = SWAPPER_DAEMON;
     endif;
-    iPID = iPID + 1;
-endwhile;
 
-if((iPID % 16) == currentPID ) then
-    newPID = 0;
+else
+    newPID = currentPID + 1;
+    newPID = newPID % 16;
+
+    while (newPID != currentPID) do
+        if(newPID != IDLE_PROCESS && newPID != SWAPPER_DAEMON && [PROCESS_TABLE + newPID * 16 + 6] == 0) then
+            if (([PROCESS_TABLE + newPID * 16 + 4] == READY) || ([PROCESS_TABLE + newPID * 16 + 4] == CREATED)) then
+                break;
+            endif;
+        endif;
+
+        newPID = newPID + 1;
+        newPID = newPID % 16;
+    endwhile;
+
+    if(newPID  == currentPID ) then
+        newPID = IDLE_PROCESS;
+    endif;
+
 endif;
 
-alias new_process_table R5;
+
+
+alias new_process_table R3;
 new_process_table = PROCESS_TABLE + (newPID * 16);
 
 SP = [new_process_table + 11] * 512 + [new_process_table + 12];

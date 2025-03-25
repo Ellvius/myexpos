@@ -1,24 +1,59 @@
-// Switch to kernel Stack
 [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13] = SP;
 SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;
 
-// Save register context of the current process
 backup;
 
-// Change the state of current process
+if([SYSTEM_STATUS_TABLE + 5] != 0) then
+    if([SYSTEM_STATUS_TABLE + 1] == SWAPPER_DAEMON) then
+        if([SYSTEM_STATUS_TABLE + 5] == SWAP_OUT) then
+            R1 = SWAP_OUT;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            call PAGER_MODULE;
+        endif;
+
+        if([SYSTEM_STATUS_TABLE + 5] == SWAP_IN) then
+            R1 = SWAP_IN;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            call PAGER_MODULE;
+        endif;
+    endif;
+
+else
+    if([SYSTEM_STATUS_TABLE + 2] < MEM_LOW) then
+        [SYSTEM_STATUS_TABLE + 5] = SWAP_OUT;
+    else
+        if([SYSTEM_STATUS_TABLE + 4] > 0) then
+            alias i R0;
+            i = SHELL_PROCESS + 1;
+
+            while(i < SWAPPER_DAEMON) do
+                if([PROCESS_TABLE + i * 16 + 6] == 1 && [PROCESS_TABLE + i * 16] > MAX_TICK || [SYSTEM_STATUS_TABLE + 2] > MEM_HIGH) then
+                    [SYSTEM_STATUS_TABLE + 5] = SWAP_IN;
+                    break;
+                endif;
+                i = i + 1;
+            endwhile;
+        endif;
+    endif;
+
+endif;
+
 [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1]*16) + 4] = READY;
 
-// Invoke the context switch module
+alias i R0;
+i = SHELL_PROCESS + 1;
+while(i < SWAPPER_DAEMON) do
+    if([PROCESS_TABLE + i * 16 + 4] != TERMINATED) then
+        [PROCESS_TABLE + i * 16] = [PROCESS_TABLE + i * 16] + 1;
+    endif;
+    i = i + 1;
+endwhile;
+
 call SCHEDULER;
 
-// Restore register context of the current process
 restore;
 
-// Switch to user stack
 SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13];
-
-// Set the mode flag of the current process
 [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 9] = 0;
 
-// Switch to user mode
 ireturn;

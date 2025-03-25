@@ -8,6 +8,7 @@ load --module 2 $HOME/myexpos/src/MOD2/memory_manager.xsm
 load --module 3 $HOME/myexpos/src/MOD3/file_manager.xsm
 load --module 4 $HOME/myexpos/src/MOD4/device_manager.xsm
 load --module 5 $HOME/myexpos/src/MOD5/scheduler.xsm
+load --module 6 $HOME/myexpos/src/MOD6/pager_module.xsm
 load --module 7 $HOME/myexpos/src/MOD7/boot_module.xsm
 load --exhandler $HOME/myexpos/src/EXHANDLER/exhandler.xsm
 load --library $HOME/myexpos/expl/library.lib
@@ -48,10 +49,6 @@ rm create.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/create.xsm
 rm delete.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/delete.xsm
-rm readfile.xsm
-load --exec $HOME/myexpos/src/EXECUTABLES/readfile.xsm
-rm syncread.xsm
-load --exec $HOME/myexpos/src/EXECUTABLES/syncread.xsm
 rm write.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/write.xsm
 rm writea.xsm
@@ -66,3 +63,7 @@ rm sample.dat
 load --data $HOME/myexpos/src/DATA_FILES/sample.dat
 rm numbers.dat
 load --data $HOME/myexpos/src/DATA_FILES/numbers.dat
+rm pagera.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/pagera.xsm
+rm pid.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/pid.xsm

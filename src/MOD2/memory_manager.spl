@@ -1,9 +1,7 @@
 alias functionNum R1;
 
 
-
-if (functionNum == GET_FREE_PAGE) 
-then
+if (functionNum == GET_FREE_PAGE) then
     [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] + 1;      // Increment the wait mem count
 
     while([SYSTEM_STATUS_TABLE + 2] == 0) do
@@ -30,10 +28,7 @@ then
 endif;
 
 
-
-
-if (functionNum == RELEASE_PAGE) 
-then
+if (functionNum == RELEASE_PAGE) then
     alias pageNum R2;
     [MEMORY_FREE_LIST + pageNum] = [MEMORY_FREE_LIST + pageNum] - 1;
 
@@ -77,10 +72,7 @@ if(functionNum == GET_FREE_BLOCK) then
 endif;
 
 
-
-
-if (functionNum == RELEASE_BLOCK) 
-then
+if (functionNum == RELEASE_BLOCK) then
     alias blockNum R2;
     [DISK_FREE_LIST + blockNum] = 0;
     
@@ -89,10 +81,7 @@ then
 endif;
 
 
-
-
-if (functionNum == GET_CODE_PAGE) 
-then
+if (functionNum == GET_CODE_PAGE) then
     alias blockNum R2;
     alias process R3;
     alias index R4;
@@ -140,4 +129,23 @@ then
     R0 = pageNum;
     return;
 
+endif;
+
+
+if(functionNum == GET_SWAP_BLOCK) then
+    alias i R2;
+    i = DISK_SWAP_AREA;
+
+    while(i < DISK_SIZE) do
+        if([DISK_FREE_LIST + i] == 0) then
+            [DISK_FREE_LIST + 1] = 1;
+            R0 = i;
+            return;
+        endif;
+
+        i = i + 1;
+    endwhile;
+
+    R0 = -1;
+    return;
 endif;
