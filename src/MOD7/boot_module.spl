@@ -309,7 +309,7 @@ endwhile;
 // Set status of other process to TERMINATED
 i = 0;
 
-while(i < MAX_PROC_NUM) do
+while(i < MAX_PROC_NUM - 1) do
     if(i > 1) then
         [PROCESS_TABLE +  i*16 + 4] = TERMINATED;
     endif;

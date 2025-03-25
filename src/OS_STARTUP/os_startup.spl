@@ -89,16 +89,18 @@ PTLR = 10;
 [PTBR+18] = -1;
 [PTBR+19] = "0000";
 
-// Process table for idle process
-[PROCESS_TABLE ] = 0;                                   // Tick
-[PROCESS_TABLE + 1] = SWAPPER_DAEMON;                   // PID
-[PROCESS_TABLE + 3] = KERNEL;                           // USERID
-[PROCESS_TABLE + 4] = CREATED;                          // Process status
-[PROCESS_TABLE + 11] = 82;                              // User area page
-[PROCESS_TABLE + 12] = 0;                               // KPTR
-[PROCESS_TABLE + 13] = 4096;                            // UPTR
-[PROCESS_TABLE + 14] = PAGE_TABLE_BASE + 20 * 15;       // PTBR
-[PROCESS_TABLE + 15] = 10;                              // PTLR
+// Process table for swapper daemon
+alias processTable R0;
+processTable = PROCESS_TABLE + SWAPPER_DAEMON * 16;
+[processTable ] = 0;                                   // Tick
+[processTable + 1] = SWAPPER_DAEMON;                   // PID
+[processTable + 3] = KERNEL;                           // USERID
+[processTable + 4] = CREATED;                          // Process status
+[processTable + 11] = 82;                              // User area page
+[processTable + 12] = 0;                               // KPTR
+[processTable + 13] = 4096;                            // UPTR
+[processTable + 14] = PAGE_TABLE_BASE + 20 * 15;       // PTBR
+[processTable + 15] = 10;                              // PTLR
 
 [81 * 512] = [69*512 + 1];
 
