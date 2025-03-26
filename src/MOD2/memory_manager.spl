@@ -87,9 +87,9 @@ if (functionNum == GET_CODE_PAGE) then
     alias index R4;
     alias pageNum R5;
     process = 0;
-    index = 4;
 
     while(process < 16) do
+        index = 4;
         while(index < 8) do
             pageNum = [PAGE_TABLE_BASE + process * 20 + 2 * index];
 
