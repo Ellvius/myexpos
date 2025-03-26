@@ -67,3 +67,21 @@ rm pagera.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/pagera.xsm
 rm pid.xsm
 load --exec $HOME/myexpos/src/EXECUTABLES/pid.xsm
+rm pagerb.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/pagerb.xsm
+rm pagerc.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/pagerc.xsm
+rm pgm1.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/pgm1.xsm
+rm pagerd.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/pagerd.xsm
+rm pgm2.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/pgm2.xsm
+rm merge.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/merge.xsm
+rm m_store.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/m_store.xsm
+rm m_sort.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/m_sort.xsm
+rm m_merge.xsm
+load --exec $HOME/myexpos/src/EXECUTABLES/m_merge.xsm
