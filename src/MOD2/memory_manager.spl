@@ -138,7 +138,7 @@ if(functionNum == GET_SWAP_BLOCK) then
 
     while(i < DISK_SIZE) do
         if([DISK_FREE_LIST + i] == 0) then
-            [DISK_FREE_LIST + 1] = 1;
+            [DISK_FREE_LIST + i] = 1;
             R0 = i;
             return;
         endif;

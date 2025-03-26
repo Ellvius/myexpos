@@ -8,7 +8,7 @@ if(functionNum == SWAP_OUT) then
     alias highestTick R5;
     alias highTickPid R6;
     semid = -1;
-    highestTick = 0;
+    highestTick = -1;
     highTickPid = -1;
 
     while(pid < SWAPPER_DAEMON) do
@@ -107,7 +107,7 @@ if(functionNum == SWAP_IN) then
 
     pid = SHELL_PROCESS + 1;
     SwapPid = -1;
-    highestTick = 0;
+    highestTick = -1;
 
     while(pid < SWAPPER_DAEMON) do
         alias processTable R6;
@@ -148,8 +148,8 @@ if(functionNum == SWAP_IN) then
 
             R1 = DISK_LOAD;
             R2 = currentPID;
-            R3 = pageNum;
             R4 = [DISK_MAP_TABLE + SwapPid * 10 + (i/2)];
+            R3 = pageNum;
             call DEVICE_MANAGER;
 
             multipop(R1,R2,R3,R4,R5,R6);

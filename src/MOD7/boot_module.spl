@@ -169,13 +169,6 @@ PROCESS = PROCESS_TABLE + INIT_PROCESS * 16;
 
 [66*512] = [65*512 + 1];
 
-alias i R0;
-// Initialize the per process table for init 
-i = 0;
-while(i < 16) do
-    [[PROCESS+ 11] * 512 + RESOURCE_TABLE_OFFSET + i] = -1;
-    i = i + 1;
-endwhile;
 
 
 // For shell process
@@ -211,20 +204,31 @@ PTLR = 10;
 [PTBR+18] = 79;
 [PTBR+19] = "0110";
 
-PROCESS = PROCESS_TABLE + SHELL_PROCESS * 16;
+alias i R0;
+alias PROCESS_SHELL R2;
+
+PROCESS_SHELL = PROCESS_TABLE + SHELL_PROCESS * 16;
 
 // Process table for shell process
-[PROCESS + 1] = SHELL_PROCESS;               // PID
-[PROCESS + 2] = LOGIN_PROCESS;               // PPID
-[PROCESS + 3] = 1;                           // USERID
-[PROCESS + 4] = TERMINATED;                  // Status
-[PROCESS + 11] = 80;                         // User area page
-[PROCESS + 12] = 0;                          // KPTR
-[PROCESS + 13] = 8 * 512;                    // UPTR
-[PROCESS + 14] = PAGE_TABLE_BASE + 40;       // PTBR
-[PROCESS + 15] = 10;                         // PTLR
+[PROCESS_SHELL + 1] = SHELL_PROCESS;               // PID
+[PROCESS_SHELL + 2] = LOGIN_PROCESS;               // PPID
+[PROCESS_SHELL + 3] = 1;                           // USERID
+[PROCESS_SHELL + 4] = TERMINATED;                  // Status
+[PROCESS_SHELL + 11] = 80;                         // User area page
+[PROCESS_SHELL + 12] = 0;                          // KPTR
+[PROCESS_SHELL + 13] = 8 * 512;                    // UPTR
+[PROCESS_SHELL + 14] = PAGE_TABLE_BASE + 40;       // PTBR
+[PROCESS_SHELL + 15] = 10;                         // PTLR
 
 [78*512] = [67*512 + 1];
+
+// Initialize the per process table for init 
+i = 0;
+while(i < 16) do
+    [[PROCESS+ 11] * 512 + RESOURCE_TABLE_OFFSET + i] = -1;
+    [[PROCESS_SHELL+ 11] * 512 + RESOURCE_TABLE_OFFSET + i] = -1;
+    i = i + 1;
+endwhile;
 
 // Set up the Disk Map table for shell
 alias diskMapTable R1;
@@ -256,66 +260,49 @@ endwhile;
 i = 0;
 
 while(i < 128) do
-    if (i < 81) then
+    if (i < 83) then
         [MEMORY_FREE_LIST + i] = 1;
     else
         [MEMORY_FREE_LIST + i] = 0;
     endif;
-    i = i + 1;
-endwhile;
 
-
-// Initialize Semaphore table
-i = 0;
-
-while(i < MAX_SEM_COUNT) do
-    [SEMAPHORE_TABLE + i * 4] = -1;
-    [SEMAPHORE_TABLE + i * 4 + 1] = 0;
-    i = i + 1;
-endwhile;
-
-
-// Initialize File status table
-i = 0;
-
-while(i < MAX_FILE_NUM) do
-    [FILE_STATUS_TABLE + i * 4] = -1;
-    [FILE_STATUS_TABLE + i * 4 + 1] = -1;
-    i = i + 1;
-endwhile;
-
-
-// Initialize Buffer table
-i = 0;
-
-while(i < MAX_BUFFER) do
-    [BUFFER_TABLE + i * 4] = -1;
-    [BUFFER_TABLE + i * 4 + 1] = 0;
-    [BUFFER_TABLE + i * 4 + 2] = -1;
-    i = i + 1;
-endwhile;
-
-
-// Initialize Open File table
-i = 0;
-
-while(i < MAX_OPENFILE_NUM) do
-    [OPEN_FILE_TABLE + i * 4] = -1;
-    [OPEN_FILE_TABLE + i * 4 + 1] = 0;
-    i = i + 1;
-endwhile;
-
-
-// Set status of other process to TERMINATED
-i = 0;
-
-while(i < MAX_PROC_NUM - 1) do
-    if(i > 1) then
-        [PROCESS_TABLE +  i*16 + 4] = TERMINATED;
+    // Initialize Semaphore table
+    if(i < MAX_SEM_COUNT) then
+        [SEMAPHORE_TABLE + i * 4] = -1;
+        [SEMAPHORE_TABLE + i * 4 + 1] = 0;
     endif;
-    [PROCESS_TABLE + i * 16] = 0;
-    i= i + 1;
-endwhile;
 
+    // Initialize File status table
+    if(i < MAX_FILE_NUM) then
+        [FILE_STATUS_TABLE + i * 4] = -1;
+        [FILE_STATUS_TABLE + i * 4 + 1] = -1;
+    endif;
+
+
+    // Initialize Buffer table
+    if(i < MAX_BUFFER) then
+        [BUFFER_TABLE + i * 4] = -1;
+        [BUFFER_TABLE + i * 4 + 1] = 0;
+        [BUFFER_TABLE + i * 4 + 2] = -1;
+    endif;
+
+
+    // Initialize Open File table
+    if(i < MAX_OPENFILE_NUM) then
+        [OPEN_FILE_TABLE + i * 4] = -1;
+        [OPEN_FILE_TABLE + i * 4 + 1] = 0;
+    endif;
+
+
+    // Set status of other process to TERMINATED
+    if(i < MAX_PROC_NUM - 1) then
+        if(i > 1) then
+            [PROCESS_TABLE +  i*16 + 4] = TERMINATED;
+        endif;
+        [PROCESS_TABLE + i * 16] = 0;
+    endif;
+
+    i = i + 1;
+endwhile;
 
 return;
